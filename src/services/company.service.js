@@ -1,4 +1,6 @@
 const Company = require("../models/company.model");
+const ApiError = require("../utils/ApiError");
+const mongoose = require('mongoose')
 
 const getCompanyService = async (queryParams) => {
 
@@ -26,7 +28,14 @@ const getCompanyService = async (queryParams) => {
     Object.keys(filters).forEach(key => {
         if (filters[key]) {
             const values = filters[key].split(",");
-            matchStage[key] = { $in: values };
+
+            if (key === "_id") {
+                matchStage[key] = {
+                    $in: values.map(id => new mongoose.Types.ObjectId(id))
+                };
+            } else {
+                matchStage[key] = { $in: values };
+            }
         }
     });
 
@@ -65,7 +74,7 @@ const getCompanyService = async (queryParams) => {
     };
 };
 
-const ApiError = require("../utils/ApiError");
+
 
 const createCompanyService = async ({ name, company_Id, userId }) => {
 
@@ -83,11 +92,32 @@ const createCompanyService = async ({ name, company_Id, userId }) => {
     const company = await Company.create({
         name,
         company_Id,
-        createdBy: userId,
+        S_Admin_Id: userId,
     });
 
     return company;
 };
 
 
-module.exports = { getCompanyService, createCompanyService };
+const updateCompanyService = async (id, data) => {
+
+    const response = await Company.findByIdAndUpdate(id, data, { new: true })
+
+    return response;
+
+}
+
+const deleteCompanyService = async (id) => {
+
+    // Soft Deleting
+    await Company.findByIdAndUpdate(id, {
+        isDelete: true,
+        isActive: false
+    });
+
+    let company = "Company is deleted"
+    return company
+}
+
+
+module.exports = { getCompanyService, createCompanyService, updateCompanyService, deleteCompanyService };

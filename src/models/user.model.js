@@ -21,6 +21,8 @@ const userSchema = new mongoose.Schema({
     required: true
   },
   company_Id: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
+  status: { type: String, default: "inactive", enum: ["inactive", "active"] },
+
   role: {
     type: String,
     enum: ["S_Admin", "Admin", "User"],
@@ -31,6 +33,9 @@ const userSchema = new mongoose.Schema({
   },
   otp: {
     type: String
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId, ref: "User"
   },
   isActive: {
     type: Boolean,

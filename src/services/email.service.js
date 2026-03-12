@@ -35,24 +35,20 @@ const sendEmail = async ({
         throw new ApiError(400, "Recipient and subject are required");
     }
 
-    try {
-        const info = await transporter.sendMail({
-            from: process.env.MAIL_FROM,
-            to,
-            subject,
-            text,
-            html,
-            attachments,
-        });
+    const info = await transporter.sendMail({
+        from: process.env.MAIL_FROM,
+        to,
+        subject,
+        text,
+        html,
+        attachments,
+    });
 
-        return {
-            messageId: info.messageId,
-            previewURL: nodemailer.getTestMessageUrl(info) || null,
-        };
-    } catch (error) {
-        console.error("Email sending failed:", error);
-        throw new ApiError(500, "Failed to send email");
-    }
+    return {
+        messageId: info.messageId,
+        previewURL: nodemailer.getTestMessageUrl(info) || null,
+    };
+
 };
 
 module.exports = { sendEmail };

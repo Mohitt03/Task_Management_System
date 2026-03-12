@@ -1,0 +1,23 @@
+Cron job for the plan expiry
+Task Management 
+
+Project Service -> get all project query params are not working
+
+12/03/26 Task
+1. History and Comment Task Management
+    a. History Module 
+        * Every task status change and important update must be stored for tracking.
+    b. Comment Module
+        * Users can add comments to it's own tasks.
+        * All users in the the projects can see all the other user task
+
+2. Pagination, filtering, and sorting in all “get all” APIs
+3. Task Management history
+4. User can only access assigned projects
+5. User can change the status of the task
+
+
+First Solve the bugs
+Bugs
+done 1. Expiry date is not properly adding in to the project
+done 2. Project Validation and task Validation error

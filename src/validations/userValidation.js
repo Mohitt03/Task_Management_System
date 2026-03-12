@@ -40,7 +40,7 @@ const userValidation = (req, res, next) => {
     if (error) {
         console.log(error);
 
-        throw new ApiError(422, error.details[0].message)
+        throw new ApiError(422, `Validation Error ${error.details[0].message}`)
 
     };
     next()
