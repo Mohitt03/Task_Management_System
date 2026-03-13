@@ -53,7 +53,7 @@ const PlanRoutes = require("./routes/plan.routes")
 const PaymentRoutes = require("./routes/payment.route")
 // const testingRoute = require("./routes/testingRoute")
 const projectRoute = require("./routes/project.routes")
-// const taskRoute = require("./routes/task.routes")
+const taskRoute = require("./routes/task.routes")
 // const historyRoutes = require("./routes/history.route");
 // const ProductRoutes = require("./routes/products.route")
 // const OrderRoutes = require("./routes/order.route")
@@ -65,7 +65,7 @@ app.use('/user', UserRoutes)
 app.use('/plan', PlanRoutes)
 // app.use('/payment', testingRoute, PaymentRoutes)
 app.use('/project', projectRoute)
-// app.use('/api/projects/:projectId/tasks', taskRoute)
+app.use('/api/task', taskRoute)
 // app.use('/api/history', historyRoutes)
 
 
