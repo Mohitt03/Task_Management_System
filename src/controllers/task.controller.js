@@ -1,9 +1,9 @@
-const { createTaskservice, getAllTasksservice, getTaskByIdservice, updateTaskservice, deleteTaskservice } = require("../services/task.service");
+const { createTaskService, getAllTasksService, getTaskByIdService, updateTaskService, deleteTaskService } = require("../services/task.service");
 const ApiResponse = require("../utils/ApiResponse2");
 const asyncHandler = require("../utils/asyncHandler");
 
 const createTask = asyncHandler(async (req, res) => {
-    const task = await createTaskservice(req.body, req.user);
+    const task = await createTaskService(req.body, req.user);
     return new ApiResponse(res, 200, task, 'Task is succesfully created')
 
 });
@@ -26,14 +26,11 @@ const getTask = async (req, res) => {
     }
 };
 
-const updateTask = async (req, res) => {
-    try {
-        const task = await updateTask(req.params.id, req.body);
-        res.json(task);
-    } catch (error) {
-        res.status(404).json({ message: error.message });
-    }
-};
+const updateTask = asyncHandler(async (req, res) => {
+    const task = await updateTaskService(req.params.id, req.body, req.user);
+    return new ApiResponse(res, 200, task, 'Task is updated succesfully')
+
+});
 
 const deleteTask = async (req, res) => {
     try {

@@ -1,7 +1,8 @@
 const companyModel = require("../models/company.model");
 const projectModel = require("../models/project.models");
 const Task = require("../models/task.model");
-
+const historyModel = require("../models/history.model")
+const ApiError = require("../utils/ApiError")
 
 const generateTaskId = (taskName, taskCount) => {
     const shortName = taskName
@@ -14,7 +15,7 @@ const generateTaskId = (taskName, taskCount) => {
     return `${shortName}-${taskNumber}`;
 };
 
-const createTaskservice = async (data, user) => {
+const createTaskService = async (data, user) => {
     const { title, description, assignedTo, reportTo, priority, status } = data
 
     // Finding project user company id
@@ -27,16 +28,22 @@ const createTaskservice = async (data, user) => {
 
 
     const task = await Task.create({ task_id: taskId, title, description, projectId: Project._id, assignedTo, reportTo, priority, status });
+
+    const history = await historyModel.create({
+        taskId: task._id,
+        action: "created",
+        updatedBy: user._id
+    })
     return task;
 };
 
-const getAllTasksservice = async () => {
+const getAllTasksService = async () => {
     return await Task.find()
         .populate("assignedTo", "name email")
         .populate("reportTo", "name email");
 };
 
-const getTaskByIdservice = async (id) => {
+const getTaskByIdService = async (id) => {
     const task = await Task.findById(id)
         .populate("assignedTo", "name email")
         .populate("reportTo", "name email");
@@ -48,21 +55,56 @@ const getTaskByIdservice = async (id) => {
     return task;
 };
 
-const updateTaskservice = async (id, data) => {
+const updateTaskService = async (id, data, user) => {
+
+    const task = await Task.findById(id);
+
+    if (!task) {
+        throw new ApiError(404, "Task Not found")
+    }
+
+    const historyLogs = [];
+
+    const trackFields = ["status", "priority", "assignedTo"];
+    // console.log(user);
+
+    trackFields.forEach(field => {
+        // console.log(field);
+
+        // console.log(data[field], task[field], data[field] !== undefined && data[field].toString() !== task[field]?.toString());
+        let action = ""
+        if (data[field] !== undefined && data[field].toString() !== task[field]?.toString()) {
+
+            if (field === "status") { action = "status-change" }
+            if (field === "priority") { action = "priority-change" }
+            historyLogs.push({
+                action,
+                taskId: task._id,
+                field,
+                oldValue: task[field],
+                newValue: data[field],
+                updatedBy: user._id
+            });
+        }
+    });
+
+
     const updated = await Task.findByIdAndUpdate(
         id,
         data,
         { new: true, runValidators: true }
     );
+    // console.log(historyLogs);
 
-    if (!updated) {
-        throw new Error("Task not found");
+    // insert history records
+    if (historyLogs.length > 0) {
+        await historyModel.insertMany(historyLogs);
     }
 
     return updated;
 };
 
-const deleteTaskservice = async (id) => {
+const deleteTaskService = async (id) => {
     const deleted = await Task.findByIdAndDelete(id);
 
     if (!deleted) {
@@ -72,4 +114,4 @@ const deleteTaskservice = async (id) => {
     return deleted;
 };
 
-module.exports = { createTaskservice, getAllTasksservice, getTaskByIdservice, updateTaskservice, deleteTaskservice };
+module.exports = { createTaskService, getAllTasksService, getTaskByIdService, updateTaskService, deleteTaskService };
