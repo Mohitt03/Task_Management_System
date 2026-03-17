@@ -4,7 +4,7 @@ const Task = require("../models/task.model");
 const historyModel = require("../models/history.model")
 const ApiError = require("../utils/ApiError")
 
-const generateTaskId = (taskName, taskCount) => {
+const generateTaskId = (taskName, taskCount) => {   
     const shortName = taskName
         .split(" ")
         .map((word) => word[0].toUpperCase())
@@ -33,14 +33,13 @@ const createTaskService = async (data, user) => {
         taskId: task._id,
         action: "created",
         updatedBy: user._id
-    })
+    })  
     return task;
 };
 
 const getAllTasksService = async () => {
-    return await Task.find()
-        .populate("assignedTo", "name email")
-        .populate("reportTo", "name email");
+    const respone = await Task.find()
+    return respone;
 };
 
 const getTaskByIdService = async (id) => {
@@ -73,19 +72,30 @@ const updateTaskService = async (id, data, user) => {
 
         // console.log(data[field], task[field], data[field] !== undefined && data[field].toString() !== task[field]?.toString());
         let action = ""
+        let oldId = ""
+        let newId = ""
         if (data[field] !== undefined && data[field].toString() !== task[field]?.toString()) {
 
             if (field === "status") { action = "status-change" }
             if (field === "priority") { action = "priority-change" }
+            if (field === "assignedTo") {
+                action = "assigned-change";
+
+                oldId = task.assignedTo;
+                newId = data.assignedTo;
+            }
+
             historyLogs.push({
                 action,
                 taskId: task._id,
                 field,
-                oldValue: task[field],
-                newValue: data[field],
+                oldValue: task[field] || oldId,
+                newValue: data[field] || newId,
                 updatedBy: user._id
             });
         }
+        console.log("WTf", oldId, newId);
+
     });
 
 
@@ -98,7 +108,8 @@ const updateTaskService = async (id, data, user) => {
 
     // insert history records
     if (historyLogs.length > 0) {
-        await historyModel.insertMany(historyLogs);
+        const a = await historyModel.insertMany(historyLogs);
+        console.log(a);
     }
 
     return updated;
@@ -113,5 +124,50 @@ const deleteTaskService = async (id) => {
 
     return deleted;
 };
+
+// const asignTaskService = async (id, userId, user) => {
+
+//     const task = await Task.findById(id);
+
+//     if (!task) {
+//         throw new ApiError(404, "Task Not found")
+//     }
+
+//     const historyLogs = [];
+
+//     const trackFields = ["status", "priority", "assignedTo"];
+//     // console.log(user);
+
+//     trackFields.forEach(field => {
+//         // console.log(field);
+
+//         // console.log(data[field], task[field], data[field] !== undefined && data[field].toString() !== task[field]?.toString());
+//         let action = ""
+//         if (data[field] !== undefined && data[field].toString() !== task[field]?.toString()) {
+
+//             if (field === "status") { action = "status-change" }
+//             if (field === "priority") { action = "priority-change" }
+//             historyLogs.push({
+//                 action,
+//                 taskId: task._id,
+//                 field,
+//                 oldValue: task[field],
+//                 newValue: data[field],
+//                 updatedBy: user._id
+//             });
+//         }
+//     });
+
+
+//     const updated = await Task.findByIdAndUpdate(
+//         id,
+//         assignedTo = userId,
+//         { new: true, runValidators: true }
+//     );
+
+
+//     return updated; 
+
+// }
 
 module.exports = { createTaskService, getAllTasksService, getTaskByIdService, updateTaskService, deleteTaskService };

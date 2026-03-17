@@ -59,12 +59,16 @@ const commentRoutes = require("./routes/comment.routes")
 // const ProductRoutes = require("./routes/products.route")
 // const OrderRoutes = require("./routes/order.route")
 // const BatchRoutes = require("./routes/batch.route")
+const http = require("http");
+const { Server } = require("socket.io");
+
+const server = http.createServer(app);  
 
 app.use('/auth', AuthRoutes);
 app.use('/company', CompanyRoutes);
 app.use('/user', UserRoutes)
 app.use('/plan', PlanRoutes)
-// app.use('/payment', testingRoute, PaymentRoutes)
+app.use('/payment', PaymentRoutes)
 app.use('/project', projectRoute)
 app.use('/api/task', taskRoute)
 app.use('/api/history', historyRoutes)
@@ -72,6 +76,12 @@ app.use('/api/comment', commentRoutes)
 
 
 app.use('/testing', paymentStatus)
+
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+    },
+});
 // app.get('/testing', (req, res) => {
 
 // })
@@ -81,5 +91,11 @@ app.use('/testing', paymentStatus)
 
 //Error Handler
 app.use(errorHandler);
+
+app.set("io", io);
+
+io.on("connection", (socket) => {
+    console.log("User connected:", socket.id);
+});
 
 module.exports = app;

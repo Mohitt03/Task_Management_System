@@ -1,6 +1,7 @@
 const User = require("../models/user.model.js");
 const ApiError = require("../utils/ApiError.js");
 const mongoose = require('mongoose')
+const sendEmail = require("../utils/sendEmail.js")
 
 const getUserService = async (queryParams) => {
 
@@ -81,7 +82,8 @@ const createUserService = async ({
     email,
     password,
     createdBy,
-    role
+    role,
+    adminName
 }) => {
 
     if ([email, name, password, role].some(field => !field?.trim())) {
@@ -102,6 +104,12 @@ const createUserService = async ({
         password,
         createdBy,
         role
+    });
+
+    await sendEmail({
+        to: email,
+        subject: "User is created",
+        html: `<h2>${name} is create by ${adminName} in Task Management System</h2> <h3> Below is your credentials </h3> <p>Name:- ${name}</p> <p>Email:- ${email}</p> <p>Pawword:- ${password}</p> <p> Role:- ${role}</p>`
     });
 
     return user;

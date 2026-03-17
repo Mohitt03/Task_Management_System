@@ -18,6 +18,14 @@ const commentSchema = new mongoose.Schema(
             type: String,
             required: true,
             trim: true
+        },
+        isActive: {
+            type: Boolean,
+            default: true
+        },
+        isDelete: {
+            type: Boolean,
+            default: false
         }
 
     },

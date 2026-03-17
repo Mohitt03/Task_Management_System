@@ -8,6 +8,7 @@ const createCheckoutSessionService = async (productId, adminId, companyId) => {
     console.log("Payment Service:", productId, adminId, companyId);
 
     const product = await Plan.findById(productId);
+    console.log(product);
 
     if (!product) {
         throw new Error("Plan not found");
@@ -105,6 +106,7 @@ const handleStripeWebhookService = async (body, signature) => {
 
         const planStartDate = new Date();
         const planExpiryDate = new Date();
+        console.log("PlantDuration", planDuration);
 
         const duration = Number(planDuration);
 

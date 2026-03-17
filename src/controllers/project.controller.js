@@ -1,7 +1,7 @@
 const asyncHandler = require("../utils/asyncHandler.js");
 const ApiError = require("../utils/ApiError.js");
 const ApiResponse = require("../utils/ApiResponse.js");
-const projectService = require("../services/project.service.js");
+const { createProjectService } = require("../services/project.service.js");
 
 // ─── Create Project ───────────────────────────────────────────────────────────
 
@@ -12,7 +12,7 @@ const createProject = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Project name is required");
     }
 
-    const project = await projectService.createProject(
+    const project = await createProjectService(
         { name, description, status, priority, start_date, due_date, tags, members },
         req.user
     );

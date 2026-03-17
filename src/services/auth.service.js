@@ -22,30 +22,41 @@ const registerUserService = async ({ email, name, password, role, companyData })
     if (existedUser) {
         throw new ApiError(409, "User with email or name already exists");
     }
-    console.log(companyData);
 
-    //creating company
-    const company = await Company.create(companyData)
+    let company = {}
+    let user = {}
+    let data = []
+    if (role === "Admin") {
+        console.log(companyData);
 
-    // create user
-    const user = await User.create({
-        company_Id: company._id,
-        name: name.toLowerCase(),
-        email,
-        password,
-        role
-    });
+        //creating company
+        company = await Company.create(companyData)
 
-    // remove sensitive fields
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    );
+        // create user
+        user = await User.create({
+            company_Id: company._id,
+            name: name.toLowerCase(),
+            email,
+            password,
+            role
+        });
 
-    if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while registering the user");
+        data = [company, user]
+    }
+    if (role === "S_Admin") {
+
+        // create user
+        user = await User.create({
+            name: name.toLowerCase(),
+            email,
+            password,
+            role
+        });
+        data = [user]
+
     }
 
-    return data = createdUser, company;
+    return data;
 };
 
 
@@ -87,6 +98,7 @@ const loginUserService = async ({ email, name, password }) => {
             pass: process.env.MAIL_PASS,
         },
     });
+    console.log(process.env.MAIL_USER, process.env.MAIL_PASS);
 
     const mailOptions = {
         to: user.email,
@@ -94,7 +106,7 @@ const loginUserService = async ({ email, name, password }) => {
         text: `Your OTP code is ${otp}`,
     };
 
-    // await transporter.sendMail(mailOptions);
+    await transporter.sendMail(mailOptions);
 
     // Temporary login token
     const loginToken = jwt.sign(

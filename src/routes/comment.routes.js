@@ -7,7 +7,7 @@ const verifyJWT = require('../middlewares/auth.middleware')
 // const PlanValidation = require('../validations/planValidation')
 
 router.route("/create/:id").post(verifyJWT, addComment);
-router.route("/get/:id").get(verifyJWT, getComment);
+router.route("/get").get(verifyJWT, getComment);
 // router.route("/update/:id").put(updatePlan)
 // router.route("/delete/:id   ").delete(verifyJWT, rbacMiddleware(["S_Admin"]), deletePlan)
 

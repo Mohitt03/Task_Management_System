@@ -16,9 +16,9 @@ router.get("/", (req, res) => {
 router.route("/create").post(verifyJWT, companyValidation, rbacMiddleware(["S_Admin", "Admin"]), createCompany)
 
 //Getting all Company
-router.route("/get").get(verifyJWT, rbacMiddleware(["S_Admin"]), getCompany)
+router.route("/get").get(verifyJWT, rbacMiddleware(["Admin"]), getCompany)
 
-router.route("/update/:id").put(updateCompany)
+router.route("/update/:id").put(rbacMiddleware(["Admin"]), updateCompany)
 
 router.route("/delete/:id").delete(verifyJWT, rbacMiddleware(["S_Admin"]), deleteCompany)
 

@@ -23,9 +23,9 @@ router.use(verifyJWT, rbacMiddleware(["Admin", "User"]));
 // GET    /api/projects/:id      → Get a single project
 // PATCH  /api/projects/:id      → Update a project
 // DELETE /api/ projects/:id      → Delete a project
-
+//projectValidation, checkPlanLimit("projects"),
 router.route("/")
-    .post(projectValidation, checkPlanLimit("projects"), createProject)
+    .post( createProject)
     .get(rbacMiddleware(["Admin", "User"]), getAllProjects);
 
 router.route("/:projectId")

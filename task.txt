@@ -1,23 +1,42 @@
-Cron job for the plan expiry
-Task Management 
-
-Project Service -> get all project query params are not working
-
-12/03/26 Task
-1. History and Comment Task Management
-    a. History Module 
-        * Every task status change and important update must be stored for tracking.
-    b. Comment Module
-        * Users can add comments to it's own tasks.
-        * All users in the the projects can see all the other user task
-
-2. Pagination, filtering, and sorting in all “get all” APIs
-3. Task Management history
-4. User can only access assigned projects
-5. User can change the status of the task
+1. Pagination, filtering, and sorting in all “get all” APIs
+2. Task Management history
+3. User can only access assigned projects
+4. User can change the status of the task
+5. Real-Time Notifications
+    Use Socket.io for:
+    Task assignment alerts
+    Status update notifications
+6. Email Notifications
+    Use Nodemailer for:
+    User creation
+    Task assignment
+    Important alerts
 
 
-First Solve the bugs
-Bugs
-done 1. Expiry date is not properly adding in to the project
-done 2. Project Validation and task Validation error
+Project is get by it's assign user and admin of that company
+Company data is only get by admin
+Admin cannot assign another user to it's task
+Create api in that admin can only use it's own user to assign to the task
+Dashboard for admin, user, superadmin
+
+
+stripe listen --forward-to localhost:3000/webhook
+
+
+// Task
+Task is get by only by it's assign user and admin of that company
+Task ia only assign by it's own company admin to it's user only
+
+Real-Time Notifications
+Use Socket.io for:
+Task assignment alerts
+Status update notifications
+
+File adding into the 
+task
+
+Email Notifications
+Use Nodemailer for:
+User creation
+Task assignment
+Important alerts

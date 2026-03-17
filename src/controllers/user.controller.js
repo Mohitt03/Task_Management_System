@@ -45,7 +45,9 @@ const createUser = asyncHandler(async (req, res) => {
         email,
         password,
         createdBy,
-        role: "User"
+        role: "User",
+        adminName: req.user.name
+
 
     });
 

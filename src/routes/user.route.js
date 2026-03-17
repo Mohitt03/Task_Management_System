@@ -16,7 +16,7 @@ router.get("/", (req, res) => {
 
 router.route("/get").get(getUsers)
 router.route("/update/:id").put(verifyJWT, updateUsers)
-router.route("/createUser/").post(verifyJWT, checkPlanLimit("users"), userValidation, createUser)
+router.route("/createUser/").post(verifyJWT, checkPlanLimit("users"), createUser)
 router.route("/createAdmin/").post(verifyJWT, userValidation, createAdmin)
 router.route("/delete/:id").delete(deleteUser)
 

@@ -1,4 +1,6 @@
-const { createCommentService, getCommentService } = require("../services/comment.service")
+const { createCommentService, getCommentService } = require("../services/comment.service");
+const ApiResponse = require("../utils/ApiResponse2");
+const asyncHandler = require("../utils/asyncHandler");
 
 const addComment = async (req, res) => {
 
@@ -20,16 +22,14 @@ const addComment = async (req, res) => {
 };
 
 
-const getComment = async (req, res) => {
-    const taskId = req.params.id;
-    const result = await getCommentService(taskId)
+const getComment = asyncHandler(async (req, res) => {
 
-    res.status(201).json({
-        success: true,
-        data: result
-    });
+    const result = await getCommentService(req.query)
 
-}
+
+    return new ApiResponse(res, 200, result, "Fetch Succesfully")
+
+})
 
 
 module.exports = { addComment, getComment }

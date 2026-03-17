@@ -1,6 +1,6 @@
 const Company = require("../models/company.model");
 const ApiError = require("../utils/ApiError");
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const getCompanyService = async (queryParams) => {
 
@@ -29,9 +29,14 @@ const getCompanyService = async (queryParams) => {
         if (filters[key]) {
             const values = filters[key].split(",");
 
-            if (key === "_id") {
+            if (["_id", "taskId", "planId"].includes(key)) {
                 matchStage[key] = {
                     $in: values.map(id => new mongoose.Types.ObjectId(id))
+                };
+            } else if (key === "name") {
+                matchStage[key] = {
+                    $regex: filters[key],
+                    $options: "i"
                 };
             } else {
                 matchStage[key] = { $in: values };

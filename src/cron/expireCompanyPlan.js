@@ -3,7 +3,7 @@ const Company = require("../models/company.model");
 const User = require("../models/user.model");
 
 const expireCompanyPlan = () => {
-  cron.schedule("*/2 * * * *", async () => {
+  cron.schedule("0 * * * *", async () => {
     try {
       console.log("Running company plan expiry cron...");
 
