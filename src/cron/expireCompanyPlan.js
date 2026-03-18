@@ -1,6 +1,6 @@
 const cron = require("node-cron");
-const Company = require("../models/company.model");
-const User = require("../models/user.model");
+const Company = require("../modules/company/company.model");
+const User = require("../modules/user/user.model");
 
 const expireCompanyPlan = () => {
   cron.schedule("*/2 * * * *", async () => {

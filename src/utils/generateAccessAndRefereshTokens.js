@@ -1,4 +1,4 @@
-const User = require("../models/user.model")
+const User = require("../modules/user/user.model")
 
 const generateAccessAndRefereshTokens = async (userId) => {
     try {

@@ -8,10 +8,9 @@ const {
     logoutUser,
     registerUser,
     refreshAccessToken,
-} = require("../controllers/auth.controller.js");
-const verifyJWT = require("../middlewares/auth.middleware.js");
-const { upload } = require("../middlewares/multer.middleware.js")
-const { userValidation } = require('../validations/userValidation.js');
+} = require("./auth.controller.js");
+const verifyJWT = require("../../middlewares/auth.middleware.js");
+const { userValidation } = require('../../validations/userValidation.js');
 
 router.get("/", (req, res) => {
     console.log("Hello");

@@ -1,10 +1,10 @@
-const User = require("../models/user.model");
-const Company = require("../models/company.model.js");
-const ApiError = require("../utils/ApiError");
+const User = require("../user/user.model.js");
+const Company = require("../company/company.model.js");
+const ApiError = require("../../utils/ApiError");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
-const { generateAccessAndRefereshTokens } = require("../utils/generateAccessAndRefereshTokens.js")
+const { generateAccessAndRefereshTokens } = require("../../utils/generateAccessAndRefereshTokens.js")
 
 
 const registerUserService = async ({ email, name, password, role, companyData }) => {

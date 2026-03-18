@@ -1,16 +1,12 @@
-const User = require('../models/user.model.js')
+const User = require('../user/user.model.js')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
-const ApiError = require('../utils/ApiError')
+const ApiError = require('../../utils/ApiError')
 // const ApiResponse = require('../utils/ApiResponse
-const asyncHandler = require('../utils/asyncHandler')
-const nodemailer = require('nodemailer')
-const crypto = require('crypto');
-const { uploadOnCloudinary } = require("../utils/cloudinary.js");
-const { log } = require('console');
+const asyncHandler = require('../../utils/asyncHandler')
 
-const ApiResponse = require("../utils/ApiResponse");
-const { registerUserService, loginUserService, verifyOtpService, logoutUserService, refreshAccessTokenService } = require("../services/auth.service");
+const ApiResponse = require("../../utils/ApiResponse");
+const { registerUserService, loginUserService, verifyOtpService, logoutUserService, refreshAccessTokenService } = require("./auth.service.js");
 
 
 
