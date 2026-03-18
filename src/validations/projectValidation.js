@@ -1,75 +1,61 @@
 const Joi = require("joi");
-const { companyValidation } = require("./companyValidation");
+const mongoose = require("mongoose");
 const ApiError = require("../utils/ApiError");
 
-
+const objectId = (value, helpers) => {
+    if (!mongoose.Types.ObjectId.isValid(value)) {
+        return helpers.message("Invalid ObjectId");
+    }
+    return value;
+};
 
 const projectValidation = (req, res, next) => {
+
     const {
         name,
-        short_code,
         task_counter,
         description,
         company_Id,
         created_by,
         members,
-        status
-        , priority, start_date,
-        due_date, completed_at, tags
+        status,
+        priority,
+        start_date,
+        due_date,
+        completed_at,
+        tags
     } = req.body;
 
     const projectInfo = {
         name,
-        short_code,
         task_counter,
         description,
         company_Id,
         created_by,
         members,
-        status
-        , priority, start_date,
-        due_date, completed_at, tags
-    }
+        status,
+        priority,
+        start_date,
+        due_date,
+        completed_at,
+        tags
+    };
 
     const projectValidationSchema = Joi.object({
-        name: Joi.string()
-            .trim()
-            .min(2)
-            .max(200)
-            .required(),
+        name: Joi.string().trim().min(2).max(200).required(),
 
-        short_code: Joi.string()
-            .trim()
-            .uppercase()
-            .min(2)
-            .max(10)
-            .required(),
+        task_counter: Joi.number().integer().min(0).default(0),
 
-        task_counter: Joi.number()
-            .integer()
-            .min(0)
-            .default(0),
+        description: Joi.string().trim().allow("", null),
 
-        description: Joi.string()
-            .trim()
-            .allow("", null),
+        company_Id: Joi.string().required().custom(objectId),
 
-        company_Id: Joi.string()
-            .required()
-            .custom(objectId, "ObjectId validation"),
-
-        created_by: Joi.string()
-            .required()
-            .custom(objectId, "ObjectId validation"),
+        created_by: Joi.string().required().custom(objectId),
 
         members: Joi.array().items(
             Joi.object({
-                user_Id: Joi.string()
-                    .required()
-                    .custom(objectId, "ObjectId validation"),
-
-                joined_at: Joi.date()
-                    .default(Date.now),
+                user_Id: Joi.string().required().custom(objectId),
+                joined_at: Joi.date().default(Date.now),
             })
         ),
 
@@ -87,23 +73,16 @@ const projectValidation = (req, res, next) => {
 
         completed_at: Joi.date(),
 
-        tags: Joi.array().items(
-            Joi.string().trim()
-        ),
+        tags: Joi.array().items(Joi.string().trim()),
     });
 
+    const { error } = projectValidationSchema.validate(projectInfo);
 
-
-
-    const { error } = projectValidation.validate(projectInfo);
     if (error) {
-        console.log(error);
-
-        throw new ApiError(422, `Validation Error ${error.details[0].message}`)
-
+        throw new ApiError(422, `Validation Error: ${error.details[0].message}`);
     }
-}
 
-
+    next(); // ✅ IMPORTANT
+};
 
 module.exports = { projectValidation };

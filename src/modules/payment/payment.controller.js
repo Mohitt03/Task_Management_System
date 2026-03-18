@@ -1,38 +1,34 @@
-const paymentService = require("../services/payment.service");
-const ApiResponse = require("../utils/ApiResponse2");
-const { createCheckoutSessionService, handleStripeWebhookService } = require("../services/payment.service");
+const paymentService = require("./payment.service");
+const ApiResponse = require("../../utils/ApiResponse2");
+const { createCheckoutSessionService, handleStripeWebhookService } = require("./payment.service");
+const asyncHandler = require("../../utils/asyncHandler");
 
 
 
 
-const createCheckoutSession = async (req, res) => {
-    try {
+const createCheckoutSession = asyncHandler(async (req, res) => {
 
-        const productId = req.params.id;
-        console.log(req.user);
+    const productId = req.params.id;
+    console.log(req.user);
 
-        const adminId = req.user._id;
-        const companyId = req.user.company_Id
-        console.log("Payment Controller", productId, adminId);
+    const adminId = req.user._id;
+    const companyId = req.user.company_Id
+    console.log("Payment Controller", productId, adminId);
 
-        const sessionUrl = await createCheckoutSessionService(productId, adminId, companyId);
+    const sessionUrl = await createCheckoutSessionService(productId, adminId, companyId);
 
-        // res.redirect(sessionUrl);
-        return new ApiResponse(res, 200, { stripePaymentGatewayLink: sessionUrl }, "Session url is succesfully genrated")
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({
-            error: err.message
-        });
-    }
-};
+    // res.redirect(sessionUrl);
+    return new ApiResponse(res, 200, { stripePaymentGatewayLink: sessionUrl }, "Session url is succesfully genrated")
+});
 
 
 
 
 const stripeWebhookController = async (req, res) => {
     try {
+
+        // console.log("Hitting the stripe webhook route in controller");
+
         const signature = req.headers["stripe-signature"];
 
         await handleStripeWebhookService(

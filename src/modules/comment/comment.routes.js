@@ -1,9 +1,9 @@
 const Router = require('express')
 const router = Router()
 
-const { addComment, getComment } = require('../controllers/comment.controller')
-const rbacMiddleware = require('../middlewares/rbac.middleware')
-const verifyJWT = require('../middlewares/auth.middleware')
+const { addComment, getComment } = require('./comment.controller')
+const rbacMiddleware = require('../../middlewares/rbac.middleware')
+const verifyJWT = require('../../middlewares/auth.middleware')
 // const PlanValidation = require('../validations/planValidation')
 
 router.route("/create/:id").post(verifyJWT, addComment);

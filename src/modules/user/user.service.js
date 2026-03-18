@@ -1,8 +1,8 @@
-const User = require("../models/user.model.js");
-const ApiError = require("../utils/ApiError.js");
+const User = require("./user.model.js");
+const ApiError = require("../../utils/ApiError.js");
 const mongoose = require('mongoose')
 
-const getUserService = async (queryParams) => {
+const getUserService = async (queryParams,User) => {
 
     let {
         page = 1,
@@ -157,7 +157,7 @@ const deleteUserService = async (targetUserId) => {
         throw new ApiError(404, "User not found");
     }
 
-    await User.findByIdAndDelete(targetUserId)
+    await softDelete(targetUserId)
 
 };
 

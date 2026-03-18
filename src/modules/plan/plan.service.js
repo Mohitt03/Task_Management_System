@@ -1,4 +1,4 @@
-const Plan = require("../models/plan.models")
+const Plan = require("./plan.models")
 
 const createPlanService = (async (data) => {
 

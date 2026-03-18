@@ -1,8 +1,8 @@
-const Company = require("../models/company.model");
-const ApiError = require("../utils/ApiError");
+const Company = require("./company.model");
+const ApiError = require("../../utils/ApiError");
 const mongoose = require('mongoose')
 
-const getCompanyService = async (queryParams) => {
+const getCompanyService = async (queryParams, currentUser) => {
 
     let {
         page = 1,
@@ -13,18 +13,21 @@ const getCompanyService = async (queryParams) => {
         ...filters
     } = queryParams;
 
-    // Convert to numbers safely
     const pageNumber = parseInt(page) || 1;
     const limitNumber = parseInt(limit) || 10;
     const skip = (pageNumber - 1) * limitNumber;
 
-    // Default match condition
     let matchStage = {
         isActive: true,
         isDelete: false
     };
 
-    // Apply dynamic filters
+    // 🟢 Role-based filtering
+    if (currentUser?.role === "Admin") {
+        matchStage._id = new mongoose.Types.ObjectId(currentUser.company_Id);
+    }
+
+    // Dynamic filters
     Object.keys(filters).forEach(key => {
         if (filters[key]) {
             const values = filters[key].split(",");
@@ -39,17 +42,15 @@ const getCompanyService = async (queryParams) => {
         }
     });
 
-    // Optional search (if needed)
+    // Search
     if (search) {
         matchStage.name = { $regex: search, $options: "i" };
     }
 
-    // Sort condition
     const sortStage = {
         [sortKey]: sortOrder === "asc" ? 1 : -1
     };
 
-    // Aggregation
     const [company, totalRecords] = await Promise.all([
         Company.aggregate([
             { $match: matchStage },
@@ -99,18 +100,18 @@ const createCompanyService = async ({ name, company_Id, userId }) => {
 };
 
 
-const updateCompanyService = async (id, data) => {
+const updateCompanyService = async (user, data) => {
 
-    const response = await Company.findByIdAndUpdate(id, data, { new: true })
+    const response = await Company.findByIdAndUpdate(user.company_Id, data, { new: true })
 
     return response;
 
 }
 
-const deleteCompanyService = async (id) => {
+const deleteCompanyService = async (user) => {
 
     // Soft Deleting
-    await Company.findByIdAndUpdate(id, {
+    await Company.findByIdAndUpdate(user.company_Id, {
         isDelete: true,
         isActive: false
     });

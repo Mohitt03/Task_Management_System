@@ -1,6 +1,6 @@
-const commentModel = require("../models/comment.model");
-const Task = require("../models/task.model");
-const ApiError = require("../utils/ApiError");
+const commentModel = require("./comment.model");
+const Task = require("../task/task.model");
+const ApiError = require("../../utils/ApiError");
 
 const createCommentService = async (taskId, comment, user) => {
 

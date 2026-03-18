@@ -1,8 +1,8 @@
-const Plan = require("../models/plan.models")
+const Plan = require("./plan.models")
 
-const { createPlanService, updatePlanService, deletePlanService } = require("../services/plan.service")
-const ApiResponse = require("../utils/ApiResponse2")
-const asyncHandler = require("../utils/asyncHandler")
+const { createPlanService, updatePlanService, deletePlanService } = require("./plan.service")
+const ApiResponse = require("../../utils/ApiResponse2")
+const asyncHandler = require("../../utils/asyncHandler")
 
 const createPlan = (asyncHandler(async (req, res) => {
 
@@ -18,7 +18,6 @@ const updatePlan = (asyncHandler(async (req, res) => {
     return new ApiResponse(res, 200, response, "Updated Succesfully")
 
 }))
-
 
 
 const deletePlan = (asyncHandler(async (req, res) => {

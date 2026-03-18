@@ -1,6 +1,6 @@
-const { createTaskService, getAllTasksService, getTaskByIdService, updateTaskService, deleteTaskService } = require("../services/task.service");
-const ApiResponse = require("../utils/ApiResponse2");
-const asyncHandler = require("../utils/asyncHandler");
+const { createTaskService, getAllTasksService, getTaskByIdService, updateTaskService, deleteTaskService } = require("./task.service");
+const ApiResponse = require("../../utils/ApiResponse2");
+const asyncHandler = require("../../utils/asyncHandler");
 
 const createTask = asyncHandler(async (req, res) => {
     const task = await createTaskService(req.body, req.user);

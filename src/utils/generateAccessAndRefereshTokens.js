@@ -1,4 +1,5 @@
 const User = require("../modules/user/user.model")
+const ApiError = require("./ApiError")
 
 const generateAccessAndRefereshTokens = async (userId) => {
     try {
@@ -14,7 +15,7 @@ const generateAccessAndRefereshTokens = async (userId) => {
 
 
     } catch (error) {
-        // console.log(error);
+        console.log(error);
 
         throw new ApiError(500, "Something went wrong while generating referesh and access token")
     }

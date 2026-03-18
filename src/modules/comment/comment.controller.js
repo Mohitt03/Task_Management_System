@@ -1,4 +1,4 @@
-const { createCommentService, getCommentService } = require("../services/comment.service")
+const { createCommentService, getCommentService } = require(".//comment.service")
 
 const addComment = async (req, res) => {
 

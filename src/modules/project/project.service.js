@@ -1,5 +1,5 @@
-const Project = require("../models/project.models.js");
-const ApiError = require("../utils/ApiError.js");
+const Project = require("./project.models.js");
+const ApiError = require("../../utils/ApiError.js");
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -20,6 +20,8 @@ module.exports.generateShortCode = generateShortCode;
 // ─── Create ───────────────────────────────────────────────────────────────────
 
 const createProject = async ({ name, description, status, priority, start_date, due_date, tags, members }, user) => {
+    console.log("Service");
+
     const existing = await Project.findOne({ company_Id: user.company_Id, name });
     if (existing) {
         throw new ApiError(409, "A project with this name already exists in your company");

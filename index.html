@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Socket Test</title>
+</head>
+<body>
+
+<h2>📩 Messages:</h2>
+<ul id="messages"></ul>
+
+<!-- Socket.IO client -->
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<script>
+  // connect to backend
+  const socket = io("http://localhost:3000");
+
+  socket.on("connect", () => {
+    console.log("✅ Connected:", socket.id);
+
+    // register user
+    socket.emit("register", "123");
+  });
+
+  // receive message
+  socket.on("customMessage", (data) => {
+    console.log("📩 Received:", data);
+
+    const li = document.createElement("li");
+    li.textContent = data.text;
+
+    document.getElementById("messages").appendChild(li);
+  });
+</script>
+
+</body>
+</html>

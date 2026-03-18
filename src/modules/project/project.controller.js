@@ -1,11 +1,13 @@
-const asyncHandler = require("../utils/asyncHandler.js");
-const ApiError = require("../utils/ApiError.js");
-const ApiResponse = require("../utils/ApiResponse.js");
-const projectService = require("../services/project.service.js");
+const asyncHandler = require("../../utils/asyncHandler.js");
+const ApiError = require("../../utils/ApiError.js");
+const ApiResponse = require("../../utils/ApiResponse.js");
+const projectService = require("./project.service.js");
 
 // ─── Create Project ───────────────────────────────────────────────────────────
 
 const createProject = asyncHandler(async (req, res) => {
+    console.log("Controller");
+
     const { name, description, status, priority, start_date, due_date, tags, members } = req.body;
 
     if (!name?.trim()) {

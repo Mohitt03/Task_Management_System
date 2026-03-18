@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const verifyJWT = require("../middlewares/auth.middleware.js");
+const verifyJWT = require("../../middlewares/auth.middleware.js");
 const {
     createProject,
     getAllProjects,
@@ -9,10 +9,10 @@ const {
     deleteProject,
     addMember,
     removeMember,
-} = require("../controllers/project.controller.js");
-const rbacMiddleware = require("../middlewares/rbac.middleware.js");
-const { checkPlanLimit } = require("../middlewares/checkPlan.middleware.js");
-const { projectValidation } = require("../validations/projectValidation.js");
+} = require("./project.controller.js");
+const rbacMiddleware = require("../../middlewares/rbac.middleware.js");
+const { checkPlanLimit } = require("../../middlewares/checkPlan.middleware.js");
+const { projectValidation } = require("../../validations/projectValidation.js");
 
 // All project routes require authentication and only admin can manage the project
 router.use(verifyJWT, rbacMiddleware(["Admin", "User"]));
@@ -25,8 +25,8 @@ router.use(verifyJWT, rbacMiddleware(["Admin", "User"]));
 // DELETE /api/ projects/:id      → Delete a project
 
 router.route("/")
-    .post(projectValidation, checkPlanLimit("projects"), createProject)
-    .get(rbacMiddleware(["Admin", "User"]), getAllProjects);
+    .post(checkPlanLimit("projects"), createProject)
+    .get(rbacMiddleware(["Admin"]), getAllProjects);
 
 router.route("/:projectId")
     .get(getProjectById)

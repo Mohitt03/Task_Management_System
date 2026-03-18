@@ -2,10 +2,10 @@ const Router = require('express')
 const router = Router();
 
 
-const { getCompany, createCompany, deleteCompany, updateCompany } = require("../controllers/company.controller.js");
-const verifyJWT = require("../middlewares/auth.middleware.js");
-const rbacMiddleware = require("../middlewares/rbac.middleware");
-const { companyValidation } = require('../validations/companyValidation.js');
+const { getCompany, createCompany, deleteCompany, updateCompany } = require("./company.controller.js");
+const verifyJWT = require("../../middlewares/auth.middleware.js");
+const rbacMiddleware = require("../../middlewares/rbac.middleware");
+const { companyValidation } = require('../../validations/companyValidation.js');
 
 router.get("/", (req, res) => {
     console.log("Hello");
@@ -16,11 +16,11 @@ router.get("/", (req, res) => {
 router.route("/create").post(verifyJWT, companyValidation, rbacMiddleware(["S_Admin", "Admin"]), createCompany)
 
 //Getting all Company
-router.route("/get").get(verifyJWT, rbacMiddleware(["S_Admin"]), getCompany)
+router.route("/get").get(verifyJWT, rbacMiddleware(["S_Admin", "Admin"]), getCompany)
 
-router.route("/update/:id").put(updateCompany)
+router.route("/update").put(verifyJWT, rbacMiddleware(["Admin"]), updateCompany)
 
-router.route("/delete/:id").delete(verifyJWT, rbacMiddleware(["S_Admin"]), deleteCompany)
+router.route("/delete").delete(verifyJWT, rbacMiddleware(["Admin"]), deleteCompany)
 
 
 module.exports = router;

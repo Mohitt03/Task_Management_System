@@ -1,8 +1,8 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const Plan = require("../models/plan.models");
-const Order = require("../models/order.model");
-const User = require("../models/user.model");
-const Company = require("../models/company.model")
+const Plan = require("../plan/plan.models");
+const Order = require("../order/order.model");
+const User = require("../user/user.model");
+const Company = require("../company/company.model")
 
 const createCheckoutSessionService = async (productId, adminId, companyId) => {
     console.log("Payment Service:", productId, adminId, companyId);
@@ -74,6 +74,7 @@ const createCheckoutSessionService = async (productId, adminId, companyId) => {
 const handleStripeWebhookService = async (body, signature) => {
     let event;
 
+    // console.log("Hitting the stripe webhook route in service");
 
     try {
         event = stripe.webhooks.constructEvent(

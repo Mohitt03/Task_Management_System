@@ -5,7 +5,7 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const { generateAccessAndRefereshTokens } = require("../../utils/generateAccessAndRefereshTokens.js")
-
+const sendEmail = require("../../utils/sendEmail.js")
 
 const registerUserService = async ({ email, name, password, role, companyData }) => {
 
@@ -79,22 +79,17 @@ const loginUserService = async ({ email, name, password }) => {
     user.otp = otp;
     await user.save({ validateBeforeSave: false });
 
-    // Send OTP Email
-    const transporter = nodemailer.createTransport({
-        service: "Gmail",
-        auth: {
-            user: process.env.MAIL_USER,
-            pass: process.env.MAIL_PASS,
-        },
-    });
-
-    const mailOptions = {
-        to: user.email,
-        subject: "Your OTP Code",
-        text: `Your OTP code is ${otp}`,
-    };
 
     // await transporter.sendMail(mailOptions);
+
+
+    await sendEmail({
+        to: user.email,
+        subject: "Your OTP Code",
+        html: `<h2>Your OTP code is ${otp}</h2>`,
+    });
+
+
 
     // Temporary login token
     const loginToken = jwt.sign(

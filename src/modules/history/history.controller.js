@@ -1,7 +1,7 @@
 // const {  } = require("../services/history.service");
-const historyModel = require("../models/history.model");
-const ApiResponse = require("../utils/ApiResponse2");
-const asyncHandler = require("../utils/asyncHandler");
+const historyModel = require("./history.model");
+const ApiResponse = require("../../utils/ApiResponse2");
+const asyncHandler = require("../../utils/asyncHandler");
 
 
 // Getting One Task History

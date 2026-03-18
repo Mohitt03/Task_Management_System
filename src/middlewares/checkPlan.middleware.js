@@ -1,9 +1,9 @@
 const ApiError = require("../utils/ApiError.js");
 const asyncHandler = require("../utils/asyncHandler.js");
-const Subscription = require("../models/plan.models.js");
-const Project = require("../models/project.models.js");
-const User = require("../models/user.model.js");
-const Company = require('../models/company.model.js')
+const Subscription = require("../modules/plan/plan.models.js");
+const Project = require("../modules/project/project.models.js");
+const User = require("../modules/user/user.model.js");
+const Company = require('../modules/company/company.model.js')
 
 // ─── Internal helper ──────────────────────────────────────────────────────────
 

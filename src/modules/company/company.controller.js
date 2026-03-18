@@ -1,16 +1,16 @@
-const Company = require("../models/company.model");
-const User = require("../models/user.model");
-const asyncHandler = require("../utils/asyncHandler")
-const ApiError = require("../utils/ApiError");
-const ApiResponse = require("../utils/ApiResponse")
-const ApiResponse2 = require("../utils/ApiResponse2")
-const { getCompanyService, createCompanyService, updateCompanyService, deleteCompanyService } = require("../services/company.service");
+const Company = require("./company.model");
+const User = require("../user//user.model");
+const asyncHandler = require("../../utils/asyncHandler")
+const ApiError = require("../../utils/ApiError");
+const ApiResponse = require("../../utils/ApiResponse")
+const ApiResponse2 = require("../../utils/ApiResponse2")
+const { getCompanyService, createCompanyService, updateCompanyService, deleteCompanyService } = require("./company.service");
 
 
 
 const getCompany = asyncHandler(async (req, res) => {
-
-    const result = await getCompanyService(req.query);
+    let user = req.user;
+    const result = await getCompanyService(req.query, user);
 
     return new ApiResponse2(
         res,
@@ -44,8 +44,8 @@ const createCompany = asyncHandler(async (req, res) => {
 const updateCompany = asyncHandler(async (req, res) => {
 
 
-
-    const response = await updateCompanyService(req.params.id, req.body)
+    let user = req.user;
+    const response = await updateCompanyService(user, req.body)
 
     return new ApiResponse2(res, 200, response, "Data Updated Succesfully")
 
@@ -53,8 +53,8 @@ const updateCompany = asyncHandler(async (req, res) => {
 
 
 const deleteCompany = asyncHandler(async (req, res) => {
-
-    let response = await deleteCompanyService(req.params.id)
+    let user = req.user;
+    let response = await deleteCompanyService(user)
 
     if (!response) {
         return res.status(404).json({ message: "Company not found" });

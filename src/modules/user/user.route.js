@@ -2,11 +2,11 @@ const Router = require('express')
 const router = Router();
 
 
-const { getUsers, updateUsers, createUser, createAdmin, deleteUser } = require("../controllers/user.controller.js");
-const verifyJWT = require("../middlewares/auth.middleware.js");
-const rbacMiddleware = require("../middlewares/rbac.middleware");
-const { userValidation } = require('../validations/userValidation.js');
-const { checkPlanLimit } = require('../middlewares/checkPlan.middleware.js');
+const { getUsers, updateUsers, createUser, softDeleteUser } = require("./user.controller.js");
+const verifyJWT = require("../../middlewares/auth.middleware.js");
+const rbacMiddleware = require("../../middlewares/rbac.middleware");
+const { userValidation } = require('../../validations/userValidation.js');
+const { checkPlanLimit } = require('../../middlewares/checkPlan.middleware.js');
 
 router.get("/", (req, res) => {
     console.log("Hello");
@@ -17,8 +17,8 @@ router.get("/", (req, res) => {
 router.route("/get").get(getUsers)
 router.route("/update/:id").put(verifyJWT, updateUsers)
 router.route("/createUser/").post(verifyJWT, checkPlanLimit("users"), userValidation, createUser)
-router.route("/createAdmin/").post(verifyJWT, userValidation, createAdmin)
-router.route("/delete/:id").delete(deleteUser)
+// router.route("/createAdmin/").post(verifyJWT, userValidation, createAdmin)
+router.route("/delete/:id").delete(softDeleteUser)
 
 //Getting all Company
 // router.route("/get").get(verifyJWT, rbacMiddleware(["S_Admin"]), getCompany)

@@ -1,8 +1,8 @@
-const companyModel = require("../models/company.model");
-const projectModel = require("../models/project.models");
-const Task = require("../models/task.model");
-const historyModel = require("../models/history.model")
-const ApiError = require("../utils/ApiError")
+const companyModel = require("../company/company.model");
+const projectModel = require("../project/project.models");
+const Task = require("../task/task.model");
+const historyModel = require("../history/history.model")
+const ApiError = require("../../utils/ApiError")
 
 const generateTaskId = (taskName, taskCount) => {
     const shortName = taskName
