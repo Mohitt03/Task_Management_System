@@ -16,13 +16,7 @@ Project Service -> get all project query params are not working
 4. User can only access assigned projects
 5. User can change the status of the task
 
-//User Routes
-    Super Admin can get all the Admin & User but cannot edit the users
-    Admin can get get him all the user inside it and edit itself and assignedTo in user and can delete user inside it 
-    User can get only him nobody else and edit it's password
-// Plans
-    Update and delete request and get req is remaining
-    Create one task that has unlimited user and unlimited project
+
     
 Project is get by it's assign user and admin of that company
 Company data is only get by admin
@@ -30,7 +24,6 @@ Admin cannot assign another user to it's task
 Create api in that admin can only use it's own user to assign to the task
 Dashboard for admin, user, superadmin
 
-In Plans Add one plan with unlimited user and unlimited projects
 stripe listen --forward-to localhost:3000/webhook
 
 
@@ -43,11 +36,24 @@ Use Socket.io for:
 Task assignment alerts
 Status update notifications
 
-File adding into the 
-task
+d    File adding into the task
 
 Email Notifications
 Use Nodemailer for:
 User creation
 Task assignment
 Important alerts
+
+
+Today's Task 
+//User Routes
+d    Super Admin can get all the Admin & User but cannot edit the users 
+d   Admin can get him all the user inside it and edit itself and can delete user  
+    --- User can get only him nobody else and edit it's password
+// Plans    
+d    Update and delete request and get req is remaining
+d    Create one task that has unlimited user and unlimited project
+d    In Plans Add one plan with unlimited user and unlimited projects
+
+d    Complete the 2 Video Of AI Course
+d    See old projects working

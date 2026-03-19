@@ -1,8 +1,15 @@
 const Plan = require("./plan.models")
 
-const { createPlanService, updatePlanService, deletePlanService } = require("./plan.service")
+const { getPlanService, createPlanService, updatePlanService, deletePlanService } = require("./plan.service")
 const ApiResponse = require("../../utils/ApiResponse2")
 const asyncHandler = require("../../utils/asyncHandler")
+
+const getPlan = asyncHandler(async (req, res) => {
+
+    let response = await getPlanService(req.params)
+
+    return new ApiResponse(res, 200, response, "Plan succesfully fetched")
+})
 
 const createPlan = (asyncHandler(async (req, res) => {
 
@@ -13,7 +20,7 @@ const createPlan = (asyncHandler(async (req, res) => {
 }))
 
 const updatePlan = (asyncHandler(async (req, res) => {
-    let response = await updatePlanService(req.params.id, req.body)
+    let response = await updatePlanService(req.params.id, req.body, req.user)
 
     return new ApiResponse(res, 200, response, "Updated Succesfully")
 
@@ -28,4 +35,4 @@ const deletePlan = (asyncHandler(async (req, res) => {
 }))
 
 
-module.exports = { createPlan, updatePlan, deletePlan }
+module.exports = { getPlan, createPlan, updatePlan, deletePlan }

@@ -2,7 +2,7 @@ const User = require("./user.model.js");
 const ApiError = require("../../utils/ApiError.js");
 const mongoose = require('mongoose')
 
-const getUserService = async (queryParams,User) => {
+const getUserService = async (queryParams, userData) => {
 
     let {
         page = 1,
@@ -10,6 +10,7 @@ const getUserService = async (queryParams,User) => {
         sortKey = "createdAt",
         sortOrder = "desc",
         search,
+        get,
         ...filters
     } = queryParams;
 
@@ -24,7 +25,22 @@ const getUserService = async (queryParams,User) => {
         isDelete: false
     };
 
-    // Apply dynamic filters
+    // Role-based filtering
+    if (get === "Admin") {
+        matchStage.role = "Admin";
+    } else if (get === "User") {
+        matchStage.role = "User";
+    }
+
+    
+    // Access control
+    if (userData.role === "Admin") {
+        matchStage.createdBy = userData._id;
+    } else if (userData.role !== "S_Admin") {
+        matchStage.company_id = userData.company_id;
+    }
+
+    // 👇 dynamic filters
     Object.keys(filters).forEach(key => {
         if (filters[key]) {
             const values = filters[key].split(",");
@@ -39,7 +55,7 @@ const getUserService = async (queryParams,User) => {
         }
     });
 
-    // Optional search (if needed)
+    // 👇 search
     if (search) {
         matchStage.name = { $regex: search, $options: "i" };
     }
@@ -48,6 +64,7 @@ const getUserService = async (queryParams,User) => {
     const sortStage = {
         [sortKey]: sortOrder === "asc" ? 1 : -1
     };
+    console.log("User Model", User);
 
     // Aggregation
     const [user, totalRecords] = await Promise.all([
