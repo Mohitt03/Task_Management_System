@@ -2,28 +2,30 @@
 const historyModel = require("./history.model");
 const ApiResponse = require("../../utils/ApiResponse2");
 const asyncHandler = require("../../utils/asyncHandler");
+const { TaskHistoryService, taskHistoryUserService } = require("./history.service")
 
-
-// Getting One Task History
+// Getting Task History by the task id 
 const getTaskHistory = asyncHandler(async (req, res) => {
 
     const taskId = req.params.id
-    const task = await historyModel.find({ taskId: taskId })
-    console.log(task);
+    const history = await TaskHistoryService(req.params.id)
 
-    return new ApiResponse(res, 200, task, "Succesfully Fetched")
+    return new ApiResponse(res, 200, history, "Succesfully Fetched")
 
 });
 
-// const getTask = async (req, res) => {
-//     try {
-//         const task = await getTaskById(req.params.id);
-//         res.json(task);
-//     } catch (error) {
-//         res.status(404).json({ message: error.message });
-//     }
-// };
+const getTask = asyncHandler(async (req, res) => {
+
+    const userId = req.user._id;
+
+    const history = await taskHistoryUserService(userId)
+
+    return new ApiResponse(res, 200, history, "Succesfully Fetched")
 
 
 
-module.exports = { getTaskHistory };
+});
+
+
+
+module.exports = { getTaskHistory, getTask   };

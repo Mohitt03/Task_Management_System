@@ -1,14 +1,10 @@
 const Project = require("./project.models.js");
 const ApiError = require("../../utils/ApiError.js");
+const { isOwner, assertOwner } = require('../../utils/ownership');
+const userModel = require("../user/user.model.js");
+const sendEmail = require('../../utils/sendEmail.js');
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/**
- * Generates a short code from project name.
- * "Task Management System" -> "TMS"
- * "Backend API"            -> "BA"
- * "Apollo"                 -> "APO"
- */
+// Genreating Short Name
 const generateShortCode = (name) => {
     const words = name.trim().split(/\s+/);
     if (words.length === 1) return words[0].substring(0, 3).toUpperCase();
@@ -17,7 +13,7 @@ const generateShortCode = (name) => {
 
 module.exports.generateShortCode = generateShortCode;
 
-// ─── Create ───────────────────────────────────────────────────────────────────
+// ─── Create
 
 const createProject = async ({ name, description, status, priority, start_date, due_date, tags, members }, user) => {
     console.log("Service");
@@ -55,101 +51,195 @@ const createProject = async ({ name, description, status, priority, start_date, 
         ],
     });
 
+    const result = await sendEmail({
+        to: user.email,
+        subject: "Project Created ",
+        html: `<h1>Project Details.</h1> <br> <h2>Project Name :-</h2> <p>${name}</p> <br> <h2>Project Description :-</h2> <p>${description}</p> `,
+    });
+
     return project;
 };
 
-// ─── Get All (scoped to company) ──────────────────────────────────────────────
+// ─── Get 
 
-const getAllProjects = async (user, query = {}) => {
-    const filter = { company_Id: user.company_Id };
+const getProjects = async (user, queryParams = {}) => {
 
-    if (query.status) filter.status = query.status;
-    if (query.priority) filter.priority = query.priority;
+    let {
+        page,
+        limit,
+        sortKey,
+        sortOrder,
+        search,
+        ...filters
+    } = queryParams || {};
 
-    if (query.myProjects === "true") {
-        filter["members.user_Id"] = user._id;
+    page = page ?? 1;
+    // limit = null ?? 10;
+    sortKey = sortKey ?? "createdAt";
+    sortOrder = sortOrder ?? "desc";
+
+    const pageNumber = parseInt(page) || 1;
+    const limitNumber = parseInt(limit) || 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    let matchStage = {
+        isActive: true,
+        isDelete: false,
+        company_Id: user.company_Id
+    };
+
+
+    // Dynamic filters
+    Object.keys(filters).forEach(key => {
+        if (filters[key]) {
+            const values = filters[key].split(",");
+
+            if (key === "_id") {
+                matchStage[key] = {
+                    $in: values.map(id => new mongoose.Types.ObjectId(id))
+                };
+            } else {
+                matchStage[key] = { $in: values };
+            }
+        }
+    });
+
+
+    // Search
+    if (search) {
+        matchStage.name = { $regex: search, $options: "i" };
     }
 
-    const projects = await Project.find(filter)
-        .populate("created_by", "name email")
-        .populate("members.user_Id", "name email")
-        .sort({ createdAt: -1 });
+    const sortStage = {
+        [sortKey]: sortOrder === "asc" ? 1 : -1
+    };
 
-    return projects;
+    const [project, totalRecords] = await Promise.all([
+        Project.aggregate([
+            // { $match: { company_Id: user.company_Id } }
+            { $match: matchStage },
+            { $project: { isActive: 0, isDelete: 0 } },
+            { $sort: sortStage },
+            { $skip: skip },
+            { $limit: limitNumber }
+        ]),
+        Project.aggregate([
+            { $match: matchStage },
+            { $count: "count" }
+        ])
+    ]);
+
+    const count = totalRecords[0]?.count || 0;
+
+    return {
+        count,
+        page: pageNumber,
+        limit: limitNumber,
+        project
+    };
 };
 
-// ─── Get One ──────────────────────────────────────────────────────────────────
 
-const getProjectById = async (projectId, user) => {
-    const project = await Project.findOne({ _id: projectId, company_Id: user.company_Id })
-        .populate("created_by", "name email")
-        .populate("members.user_Id", "name email");
-
-    if (!project) {
-        throw new ApiError(404, "Project not found");
-    }
-
-    return project;
+const getProjectsUser = async (user) => {
+    const project = Project.find({ created_by: user.createdBy })
+    return project
 };
 
 // ─── Update ───────────────────────────────────────────────────────────────────
 
 const updateProject = async (projectId, updates, user) => {
-    const project = await Project.findOne({ _id: projectId, company_Id: user.company_Id });
+    if (!Object.keys(updates).length) {
+        throw new ApiError(400, "No fields provided for update");
+    }
+
+    const project = await Project.findOne({
+        _id: projectId,
+        company_Id: user.company_Id
+    });
 
     if (!project) {
         throw new ApiError(404, "Project not found");
     }
 
-    const isManager = project.members.some(
-        (m) => m.user_Id.toString() === user._id.toString() && m.role === "manager"
-    );
-    const isCreator = project.created_by.toString() === user._id.toString();
+    assertOwner(user.company_Id, project.company_Id);
 
-    if (!isManager && !isCreator) {
-        throw new ApiError(403, "You don't have permission to update this project");
-    }
-
+    // 🔍 duplicate name check
     if (updates.name && updates.name !== project.name) {
-        const existing = await Project.findOne({ company_Id: user.company_Id, name: updates.name });
+        const existing = await Project.findOne({
+            company_Id: user.company_Id,
+            name: { $regex: `^${updates.name}$`, $options: "i" }
+        });
+
         if (existing) {
-            throw new ApiError(409, "A project with this name already exists in your company");
+            throw new ApiError(409, "A project with this name already exists");
         }
     }
 
+    // 🔄 status logic
     if (updates.status === "completed" && project.status !== "completed") {
         updates.completed_at = new Date();
     }
+
     if (updates.status && updates.status !== "completed") {
         updates.completed_at = null;
     }
 
-    const allowedFields = ["name", "description", "status", "priority", "start_date", "due_date", "tags", "completed_at"];
-    allowedFields.forEach((field) => {
-        if (updates[field] !== undefined) {
+    const allowedFields = [
+        "name",
+        "description",
+        "status",
+        "priority",
+        "start_date",
+        "due_date",
+        "tags",
+        "completed_at"
+    ];
+
+    for (const field of allowedFields) {
+        if (updates[field] !== undefined && updates[field] !== null) {
             project[field] = updates[field];
         }
-    });
+    }
 
     await project.save();
+
+    const result = await sendEmail({
+        to: user.email,
+        subject: "Project Updated",
+        html: `<h1>Project Details.</h1> <br> <h2>Project Name :-</h2> <p>${updates.name}</p> <br> <h2>Project Description :-</h2> <p>${updates.description}</p> `,
+    });
+
     return project;
 };
 
 // ─── Delete ───────────────────────────────────────────────────────────────────
 
 const deleteProject = async (projectId, user) => {
-    const project = await Project.findOne({ _id: projectId, company_Id: user.company_Id });
+    const project = await Project.findOne({
+        _id: projectId,
+        company_Id: user.company_Id,
+        isDelete: false
+    });
 
     if (!project) {
         throw new ApiError(404, "Project not found");
     }
 
-    const isCreator = project.created_by.toString() === user._id.toString();
-    if (!isCreator) {
-        throw new ApiError(403, "Only the project creator can delete this project");
-    }
+    assertOwner(project.created_by, user._id)
 
-    await project.deleteOne();
+    // 🗑️ Soft delete
+    project.isDelete = true;
+    project.isActive = false;
+    project.deleted_at = new Date();
+
+    await project.save();
+
+    const result = await sendEmail({
+        to: user.email,
+        subject: "Project Deleted",
+        html: `<h1>Project Details.</h1> <br> <h2>Project Name :-</h2> <p>${project.name}</p> <br> <h2>Project Description :-</h2> <p>${project.description}</p> `,
+    });
+
     return { message: "Project deleted successfully" };
 };
 
@@ -157,17 +247,16 @@ const deleteProject = async (projectId, user) => {
 
 const addMember = async (projectId, { user_Id, }, user) => {
     const project = await Project.findOne({ _id: projectId, company_Id: user.company_Id });
-
+    const AsignUser = await userModel.findById(user_Id)
     if (!project) {
         throw new ApiError(404, "Project not found");
     }
 
-    // const isManager = project.members.some(
-    //     (m) => m.user_Id.toString() === user._id.toString() && m. === "manager"
-    // );
-    // if (!isManager) {
-    //     throw new ApiError(403, "Only a project manager can add members");
-    // }
+    assertOwner(project.company_Id, user.company_Id, message = "Admin is not owner of the project")
+
+    assertOwner(AsignUser.createdBy, user._id, message = "Admin cannot assign another User")
+
+
 
     const alreadyMember = project.members.some((m) => m.user_Id.toString() === user_Id.toString());
     if (alreadyMember) {
@@ -177,22 +266,29 @@ const addMember = async (projectId, { user_Id, }, user) => {
     project.members.push({ user_Id });
     await project.save();
 
+
+    const result = await sendEmail({
+        to: AsignUser.email,
+        subject: "You have been assign to new Project",
+        html: `<h1>Project Details.</h1> <br> <h2>Project Name :-</h2> <p>${project.name}</p> <br> <h2>Project Description :-</h2> <p>${project.description}</p> `,
+    });
+
+
     return project;
 };
 
 const removeMember = async (projectId, memberId, user) => {
     const project = await Project.findOne({ _id: projectId, company_Id: user.company_Id });
-
+    const AsignUser = await userModel.findById(memberId)
     if (!project) {
         throw new ApiError(404, "Project not found");
     }
 
-    const isManager = project.members.some(
-        (m) => m.user_Id.toString() === user._id.toString() && m.role === "manager"
-    );
-    if (!isManager) {
-        throw new ApiError(403, "Only a project manager can remove members");
-    }
+
+    assertOwner(project.company_Id, user.company_Id, message = "Admin is not owner of the project")
+
+    assertOwner(AsignUser.createdBy, user._id, message = "Admin cannot assign another User")
+
 
     const memberIndex = project.members.findIndex((m) => m.user_Id.toString() === memberId);
     if (memberIndex === -1) {
@@ -210,14 +306,19 @@ const removeMember = async (projectId, memberId, user) => {
     project.members.splice(memberIndex, 1);
     await project.save();
 
+    const result = await sendEmail({
+        to: AsignUser.email,
+        subject: `You have been remove from the Project ${project.name}`,
+        html: `<h1>Project Details.</h1> <br> <h2>Project Name :-</h2> <p>${project.name}</p> <br> <h2>Project Description :-</h2> <p>${project.description}</p> `,
+    });
     return project;
 };
 
 module.exports = {
     generateShortCode,
     createProject,
-    getAllProjects,
-    getProjectById,
+    getProjects,
+    getProjectsUser,
     updateProject,
     deleteProject,
     addMember,

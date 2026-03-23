@@ -1,4 +1,5 @@
-const { createCommentService, getCommentService } = require(".//comment.service")
+const asyncHandler = require("../../utils/asyncHandler");
+const { createCommentService, getCommentsByTaskId, getCommentsByUserId } = require(".//comment.service")
 
 const addComment = async (req, res) => {
 
@@ -20,16 +21,26 @@ const addComment = async (req, res) => {
 };
 
 
-const getComment = async (req, res) => {
+const getComment = asyncHandler(async (req, res) => {
     const taskId = req.params.id;
-    const result = await getCommentService(taskId)
+    const result = await getCommentsByTaskId(taskId)
 
     res.status(201).json({
         success: true,
         data: result
     });
+});
 
-}
+
+const getCommentUser = asyncHandler(async (req, res) => {
+    const userId = req.params.id;
+    const result = await getCommentsByUserId(userId)
+
+    res.status(201).json({
+        success: true,
+        data: result
+    });
+});
 
 
-module.exports = { addComment, getComment }
+module.exports = { addComment, getComment, getCommentUser }

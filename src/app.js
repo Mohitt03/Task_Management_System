@@ -55,27 +55,20 @@ const projectRoute = require("./modules/project/project.routes")
 const taskRoute = require("./modules/task/task.routes")
 const historyRoutes = require("./modules/history/history.routes");
 const commentRoutes = require("./modules/comment/comment.routes")
-const fileRoutes = require("./modules/file/file.route")
-
+const fileRoutes = require("./modules/file/file.route");
+const jwtVerify = require("./middlewares/auth.middleware")
+const paymentStatus = require("./middlewares/paymentStatus.middleware")
 
 app.use('/auth', AuthRoutes);
-app.use('/company', CompanyRoutes);
-app.use('/user', UserRoutes)
-app.use('/plan', PlanRoutes)
+app.use('/company', jwtVerify, paymentStatus(), CompanyRoutes);
+app.use('/user', jwtVerify, paymentStatus(), UserRoutes)
+app.use('/plan', jwtVerify, paymentStatus(), PlanRoutes)
 app.use('/payment', PaymentRoutes)
-app.use('/project', projectRoute)
-app.use('/api/task', taskRoute)
-app.use('/api/history', historyRoutes)
-app.use('/api/comment', commentRoutes)
-app.use('/api/file', fileRoutes)
-
-// app.use('/testing', paymentStatus)
-// app.get('/testing', (req, res) => {
-
-// })
-// app.use('/api/orders', OrderRoutes);
-// app.use('/api/products', ProductRoutes);
-// app.use('/api/batch', BatchRoutes);
+app.use('/project', jwtVerify, paymentStatus(), projectRoute)
+app.use('/api/task', jwtVerify, paymentStatus(), taskRoute)
+app.use('/api/history', jwtVerify, paymentStatus(), historyRoutes)
+app.use('/api/comment', jwtVerify, paymentStatus(), commentRoutes)
+app.use('/api/file', jwtVerify, paymentStatus(), fileRoutes)
 
 //Error Handler
 app.use(errorHandler);

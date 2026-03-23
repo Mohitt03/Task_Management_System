@@ -1,9 +1,11 @@
-const { createTaskService, getAllTasksService, getTaskByIdService, updateTaskService, deleteTaskService } = require("./task.service");
+const { createTaskService, getAllTasksService, getTaskByProjIdService, updateTaskService, deleteTaskService, getUserTasksService, updateTaskStatusService } = require("./task.service");
 const ApiResponse = require("../../utils/ApiResponse2");
 const asyncHandler = require("../../utils/asyncHandler");
 
 const createTask = asyncHandler(async (req, res) => {
-    const task = await createTaskService(req.body, req.user);
+    let projectId = req.params.projId
+
+    const task = await createTaskService(req.body, req.user, projectId);
     return new ApiResponse(res, 200, task, 'Task is succesfully created')
 
 });
@@ -17,14 +19,26 @@ const getAllTasks = async (req, res) => {
     }
 };
 
-const getTask = async (req, res) => {
-    try {
-        const task = await getTaskById(req.params.id);
-        res.json(task);
-    } catch (error) {
-        res.status(404).json({ message: error.message });
+const getTaskByProjId = asyncHandler(async (req, res) => {
+    const projectId = req.params.id;
+    const queryParams = req.query;
+
+    if (!projectId) {
+        return res.status(400).json({
+            success: false,
+            message: "Project ID is required"
+        });
     }
-};
+
+    const result = await getTaskByProjIdService(projectId, queryParams);
+
+    return res.status(200).json({
+        success: true,
+        message: "Tasks fetched successfully",
+        ...result
+    });
+
+});
 
 const updateTask = asyncHandler(async (req, res) => {
     const task = await updateTaskService(req.params.id, req.body, req.user);
@@ -34,11 +48,61 @@ const updateTask = asyncHandler(async (req, res) => {
 
 const deleteTask = async (req, res) => {
     try {
-        await deleteTask(req.params.id);
+        await deleteTask(req.params.id, req.user);
         res.json({ message: "Task deleted successfully" });
     } catch (error) {
         res.status(404).json({ message: error.message });
     }
 };
 
-module.exports = { createTask, getAllTasks, getTask, updateTask, deleteTask };
+/**
+ * GET /tasks/my-tasks
+ */
+const getUserTasks = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+
+    const tasks = await getUserTasksService(userId);
+
+    // res.status(200).json({
+    //     success: true,
+    //     count: tasks.length,
+    //     data: tasks
+    // });
+
+    return new ApiResponse(res, 200, tasks, "Succesfully Fetched")
+
+
+
+});
+
+
+/**
+ * PATCH /tasks/:id/status
+ */
+const updateTaskStatus = asyncHandler(async (req, res) => {
+    const userId = req.user._id;
+    const taskId = req.params.id;
+    const { status } = req.body;
+
+    if (!status) {
+        return res.status(400).json({
+            success: false,
+            message: "Status is required"
+        });
+    }
+
+    const updatedTask = await updateTaskStatusService(
+        taskId,
+        userId,
+        status
+    );
+
+    res.status(200).json({
+        success: true,
+        message: "Task status updated successfully",
+        data: updatedTask
+    });
+
+});
+
+module.exports = { createTask, getAllTasks, getTaskByProjId, updateTask, deleteTask, getUserTasks, updateTaskStatus };

@@ -1,51 +1,52 @@
 const ApiError = require("../utils/ApiError.js");
 const asyncHandler = require("../utils/asyncHandler.js");
-const jwt = require("jsonwebtoken")
-const User = require("../models/user.model.js");
-const Company = require("../models/company.model.js");
+// const jwt = require("jsonwebtoken")
+const User = require("../modules/user/user.model");
+const Company = require("../modules/company/company.model");
 
-const verifyJWT = asyncHandler(async (req, res, next) => {
-    try {
-        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
+const createError = require('http-errors')
 
-        if (!token) {
-            throw new ApiError(401, "Unauthorized request")
+const checkSubscriptionStatus = () => {
+    return async (req, res, next) => {
+        try {
+            // Assuming req.user is already populated (via auth middleware)
+            const user = req.user;
+            
+
+            if (!user) {
+                return next(createError(401, "Unauthorized"));
+            }
+
+            // Check if user is Admin
+            if (user.role === "Admin") {
+
+
+                // Check Admin status
+                if (user.status === "inactive") {
+                    return next(
+                        createError(403, "Your account is inactive. Please purchase a new subscription.")
+                    );
+                }
+
+                const company = Company.findById(user.company_Id);
+
+                if (!company) {
+                    return next(createError(404, "Company not found"));
+                }
+
+                // Check Company status
+                if (company.status === "inactive") {
+                    return next(
+                        createError(403, "Your company subscription is inactive. Please purchase a new subscription.")
+                    );
+                }
+            }
+            // Everything is fine
+            next();
+        } catch (error) {
+            next(error);
         }
+    };
+};
 
-
-        const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
-
-
-        const user = await User.findById(decodedToken?._id).select("-password -refreshToken")
-
-
-
-
-        if (!user) {
-
-            throw new ApiError(401, "Invalid Access Token")
-        }
-
-
-        // Checking User Payment Status
-        if (user.status !== "active") {
-            throw new ApiError(401, "Invalid Access")
-
-        }
-
-        // Checking User Payment Status 
-        const company = await Company.findById(user.company_Id)
-
-        if (company.status !== "active") {
-            throw new ApiError(401, "Invalid Access")
-        }
-
-        req.user = user;
-        next()
-    } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid access token")
-    }
-
-})
-
-module.exports = verifyJWT
+module.exports = checkSubscriptionStatus;

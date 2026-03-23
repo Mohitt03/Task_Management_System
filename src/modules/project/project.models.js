@@ -1,3 +1,4 @@
+const { boolean } = require("joi");
 const mongoose = require("mongoose");
 
 const projectSchema = new mongoose.Schema(
@@ -75,6 +76,15 @@ const projectSchema = new mongoose.Schema(
 
         completed_at: {
             type: Date,
+        },
+        isActive: {
+            type: Boolean,
+            default: true
+        },
+
+        isDelete: {
+            type: Boolean,
+            default: false
         },
 
         tags: [

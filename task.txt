@@ -45,11 +45,11 @@ Task assignment
 Important alerts
 
 
-Today's Task 
+19/03/26 
 //User Routes
 d    Super Admin can get all the Admin & User but cannot edit the users 
 d   Admin can get him all the user inside it and edit itself and can delete user  
-    --- User can get only him nobody else and edit it's password
+
 // Plans    
 d    Update and delete request and get req is remaining
 d    Create one task that has unlimited user and unlimited project
@@ -57,3 +57,22 @@ d    In Plans Add one plan with unlimited user and unlimited projects
 
 d    Complete the 2 Video Of AI Course
 d    See old projects working
+
+
+22/03/26
+// User
+    Add Ownership util function wherever needed
+    Create Dashboard api
+    sending email whenever needed
+
+// Project
+    Add owenership function in the project
+
+// History
+    Updated 
+
+//Task
+    Updated 
+
+//Plan 
+    Updated 

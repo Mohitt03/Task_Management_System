@@ -26,32 +26,29 @@ const createProject = asyncHandler(async (req, res) => {
 
 // ─── Get All Projects ─────────────────────────────────────────────────────────
 
-const getAllProjects = asyncHandler(async (req, res) => {
-    const { status, priority, myProjects } = req.query;
+const getProjects = asyncHandler(async (req, res) => {
 
-    const projects = await projectService.getAllProjects(req.user, { status, priority, myProjects });
+    const projects = await projectService.getProjects(req.user, req.query);
 
     return res
         .status(200)
         .json(new ApiResponse(200, projects, "Projects fetched successfully"));
 });
 
-// ─── Get Project By ID ────────────────────────────────────────────────────────
 
-const getProjectById = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
-
-    const project = await projectService.getProjectById(projectId, req.user);
+const getProjectsByUser = asyncHandler(async (req, res) => {
+    const projects = await projectService.getProjectsUser(req.user, req.query);
 
     return res
         .status(200)
-        .json(new ApiResponse(200, project, "Project fetched successfully"));
-});
+        .json(new ApiResponse(200, projects, "Projects fetched successfully"));
+})
+
 
 // ─── Update Project ───────────────────────────────────────────────────────────
 
 const updateProject = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
+    const { projectId } = req.params.projectId;
     const updates = req.body;
 
     if (Object.keys(updates).length === 0) {
@@ -108,8 +105,8 @@ const removeMember = asyncHandler(async (req, res) => {
 
 module.exports = {
     createProject,
-    getAllProjects,
-    getProjectById,
+    getProjects,
+    getProjectsByUser,
     updateProject,
     deleteProject,
     addMember,

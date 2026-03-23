@@ -32,7 +32,7 @@ const getUserService = async (queryParams, userData) => {
         matchStage.role = "User";
     }
 
-    
+
     // Access control
     if (userData.role === "Admin") {
         matchStage.createdBy = userData._id;
@@ -118,15 +118,49 @@ const createUserService = async ({
         email,
         password,
         createdBy,
-        role
+        role,
+        status: "active"
     });
 
     return user;
 };
 
 
-const updateUserService = async (userId, updateData, currentUserRole) => {
+const updateUserService = async (updateData, userData) => {
 
+    if (!userData._id) {
+        throw new ApiError(400, "User Id not found");
+    }
+
+
+    console.log("User Service", userData);
+
+
+    // Remove undefined fields
+    Object.keys(updateData).forEach((key) => {
+        if (updateData[key] === undefined) {
+            delete updateData[key];
+        }
+    });
+
+
+    // 👉 USER LOGIC
+
+    // ❌ Prevent restricted fields
+    delete updateData.company_Id;
+    delete updateData.role;
+
+    const updatedUser = await User.findByIdAndUpdate(
+        userData._id,
+        { $set: updateData },
+        { new: true, runValidators: true }
+    );
+
+
+    return updatedUser;
+};
+
+const updateUserByAdmin = async (userId, updateData, currentUser) => {
     if (!userId) {
         throw new ApiError(400, "User Id not found");
     }
@@ -134,23 +168,32 @@ const updateUserService = async (userId, updateData, currentUserRole) => {
     // Find existing user
     const existingUser = await User.findById(userId);
 
+
+    assertOwner(currentUser._id, existingUser.createdBy);
+
+
     if (!existingUser) {
         throw new ApiError(404, "User not found");
     }
+    console.log(currentUser._id === existingUser.createdBy);
 
-    // Role-based update logic
-    if (currentUserRole !== "S_Admin") {
-        // Prevent non super-admin from updating role
-        delete updateData.role;
+    // ✅ Admin can only update users created by them
+    if (String(currentUser._id) !== String(existingUser.createdBy)) {
+        throw new ApiError(401, "Admin is not allowed to update this user");
     }
 
-    // Remove undefined fields
-    Object.keys(updateData).forEach(key => {
+    // ❌ Restrict fields
+    delete updateData.password;
+    delete updateData.company_Id;
+
+    // 🔥 Remove undefined fields
+    Object.keys(updateData).forEach((key) => {
         if (updateData[key] === undefined) {
             delete updateData[key];
         }
     });
 
+    // Update user
     const updatedUser = await User.findByIdAndUpdate(
         userId,
         { $set: updateData },
@@ -161,10 +204,16 @@ const updateUserService = async (userId, updateData, currentUserRole) => {
 };
 
 
-const deleteUserService = async (targetUserId) => {
+const deleteUserService = async (targetUserId, currentUserData) => {
 
     if (!targetUserId) {
         throw new ApiError(400, "User Id not found");
+    }
+
+
+    // ✅ Admin can only delete users created by them
+    if (String(currentUserData._id) !== String(targetUserId)) {
+        throw new ApiError(401, "Admin is not allowed to delete this user");
     }
 
     // Find target user
@@ -191,4 +240,4 @@ const softDelete = async (userId) => {
     );
 };
 
-module.exports = { getUserService, createUserService, updateUserService, deleteUserService }
+module.exports = { getUserService, createUserService, updateUserService, updateUserByAdmin, deleteUserService }

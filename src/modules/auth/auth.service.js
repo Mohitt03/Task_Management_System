@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const { generateAccessAndRefereshTokens } = require("../../utils/generateAccessAndRefereshTokens.js")
 const sendEmail = require("../../utils/sendEmail.js")
 
-const registerUserService = async ({ email, name, password, role, companyData }) => {
+const registerUserService = async ({ email, name, password, role, companyData, key }) => {
 
     // validation
     if ([email, name, password, role].some(field => !field?.trim())) {
@@ -24,16 +24,51 @@ const registerUserService = async ({ email, name, password, role, companyData })
     }
     console.log(companyData);
 
+    let user;
+    let status = "inactive"
+
+    // Creating S_Admin Only 2 Allowed
+    if (role === "S_Admin") {
+        status = "active"
+        console.log(key.toString(), process.env.SUPER_ADMIN_KEY);
+
+        if (key.toString() !== process.env.SUPER_ADMIN_KEY) throw new ApiError(400, "Wrong Super Admin Key")
+
+        const sAdmin = await User.countDocuments({ role: "S_Admin" });
+        if (sAdmin >= 2) throw new ApiError(400, "Only 2 Super Admin is allowed")
+        console.log(sAdmin);
+
+        user = await User.create({
+            name: name.toLowerCase(),
+            email,
+            password,
+            role,
+            status
+        });
+
+
+        const createdUser = await User.findById(user._id).select(
+            "-password -refreshToken"
+        );
+
+        if (!createdUser) {
+            throw new ApiError(500, "Something went wrong while registering the user");
+        }
+        let message = "Purchase the Plan To use the softeware"
+        return data = createdUser, message;
+    }
+
     //creating company
     const company = await Company.create(companyData)
 
     // create user
-    const user = await User.create({
+    user = await User.create({
         company_Id: company._id,
         name: name.toLowerCase(),
         email,
         password,
-        role
+        role,
+        status
     });
 
     // remove sensitive fields
@@ -44,8 +79,8 @@ const registerUserService = async ({ email, name, password, role, companyData })
     if (!createdUser) {
         throw new ApiError(500, "Something went wrong while registering the user");
     }
-
-    return data = createdUser, company;
+    let message = "Purchase the Plan To use the softeware"
+    return data = createdUser, company, message;
 };
 
 

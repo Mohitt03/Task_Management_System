@@ -1,7 +1,7 @@
 const Company = require("./company.model");
 const ApiError = require("../../utils/ApiError");
 const mongoose = require('mongoose')
-const { isOwner, assertOwner } = require('../../utils/ownership')
+
 const getCompanyService = async (queryParams, currentUser) => {
 
     let {
@@ -102,59 +102,23 @@ const createCompanyService = async ({ name, company_Id, userId }) => {
 
 const updateCompanyService = async (user, data) => {
 
-    if (!user.company_Id) {
-        throw new ApiError(400, "Company Id not found");
-    }
+    const response = await Company.findByIdAndUpdate(user.company_Id, data, { new: true })
 
-    const company = await Company.findById(user.company_Id);
+    return response;
 
-    if (!company) {
-        throw new ApiError(404, "Company not found");
-    }
-
-    // ✅ Ownership check
-    assertOwner(user.company_Id, company._id, "You are not allowed to update this company");
-
-    // 🔥 Remove undefined fields (optional but recommended)
-    Object.keys(data).forEach((key) => {
-        if (data[key] === undefined) {
-            delete data[key];
-        }
-    });
-
-    const updatedCompany = await Company.findByIdAndUpdate(
-        user.company_Id,
-        { $set: data },
-        { new: true, runValidators: true }
-    );
-
-    return updatedCompany;
-};
-
+}
 
 const deleteCompanyService = async (user) => {
 
-    if (!user.company_Id) {
-        throw new ApiError(400, "Company Id not found");
-    }
-
-    const company = await Company.findById(user.company_Id);
-
-    if (!company) {
-        throw new ApiError(404, "Company not found");
-    }
-
-    // ✅ Ownership check
-    assertOwner(user.company_Id, company._id, "You are not allowed to delete this company");
-
-    // Soft delete
+    // Soft Deleting
     await Company.findByIdAndUpdate(user.company_Id, {
         isDelete: true,
         isActive: false
     });
 
-    return "Company is deleted";
-};
+    let company = "Company is deleted"
+    return company
+}
 
 
 module.exports = { getCompanyService, createCompanyService, updateCompanyService, deleteCompanyService };

@@ -2,9 +2,8 @@ const User = require("./user.model")
 const ApiError = require("../../utils/ApiError")
 const ApiResponse = require("../../utils/ApiResponse2")
 const asyncHandler = require("../../utils/asyncHandler")
-const { getUserService, updateUserService, createUserService, deleteUserService } = require("./user.service")
+const { getUserService, updateUserService, updateUserByAdmin, createUserService, deleteUserService } = require("./user.service")
 // const { createUser } = require("./admin.controller")
-
 
 //Getting User
 const getUsers = asyncHandler(async (req, res) => {
@@ -37,9 +36,22 @@ const createUser = asyncHandler(async (req, res) => {
 
 //Updating User
 const updateUsers = asyncHandler(async (req, res) => {
-    console.log(req.params.id, req.body, req.user.role);
+    // console.log(req.params.id, req.body, req.user);
 
-    const result = await updateUserService(req.params.id, req.body, req.user.role)
+
+    let result = await updateUserService(req.body, req.user)
+
+
+    return new ApiResponse(
+        res, 200, result, "Updated Succesfully"
+    )
+
+})
+
+const updateUsersByAdmin = asyncHandler(async (req, res) => {
+
+    let result = await updateUserByAdmin(req.params.id, req.body, req.user)
+
 
     return new ApiResponse(
         res, 200, result, "Updated Succesfully"
@@ -49,7 +61,7 @@ const updateUsers = asyncHandler(async (req, res) => {
 
 // Soft Deleting User
 const softDeleteUser = asyncHandler(async (req, res) => {
-    const response = await deleteUserService(req.params.id)
+    const response = await deleteUserService(req.params.id, req.user)
     return new ApiResponse(res, 200, response, "Deleted Succesfully")
 })
 
@@ -59,4 +71,4 @@ const hardDeleteUser = asyncHandler(async (req, res) => {
     return new ApiResponse(res, 200, response, "Deleted Succesfully")
 })
 
-module.exports = { getUsers, updateUsers, createUser, softDeleteUser, hardDeleteUser }
+module.exports = { getUsers, updateUsers, updateUsersByAdmin, createUser, softDeleteUser, hardDeleteUser }
