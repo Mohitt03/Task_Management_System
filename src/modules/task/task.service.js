@@ -7,6 +7,8 @@ const asyncHandler = require("../../utils/asyncHandler");
 const { assertOwner } = require("../../utils/ownership");
 const mongoose = require('mongoose')
 
+//Working on getTaskByProjIdService
+
 const generateTaskId = (taskName, taskCount) => {
     const shortName = taskName
         .split(" ")
@@ -19,7 +21,7 @@ const generateTaskId = (taskName, taskCount) => {
 };
 
 const createTaskService = async (data, user, projectId) => {
-    const { title, description, assignedTo, reportTo, priority, status } = data;
+    const { title, description, assignedTo, priority, status } = data;
 
     // Count tasks in project
     const taskCount = await Task.countDocuments({ projectId });
@@ -41,14 +43,14 @@ const createTaskService = async (data, user, projectId) => {
     }
 
     // Check duplicate title in same project
-    const existingTask = await Task.findOne({ title, projectId });
+    const existingTask = await Task.findOne({ project, projectId });
 
     if (existingTask) {
         throw new ApiError(400, "Title already exists in this project");
     }
 
     // Generate task ID
-    const taskId = generateTaskId(title, taskCount);
+    const taskId = generateTaskId(project.name, taskCount);
 
     const task = await Task.create({
         task_id: taskId,
@@ -56,7 +58,7 @@ const createTaskService = async (data, user, projectId) => {
         description,
         projectId,
         assignedTo,
-        reportTo,
+        reportTo: user._id,
         priority,
         status
     });
@@ -70,17 +72,150 @@ const createTaskService = async (data, user, projectId) => {
     return task;
 };
 
-const getAllTasksService = async () => {
-    return await Task.find()
-        .populate("assignedTo", "name email")
-        .populate("reportTo", "name email");
+const getAllTasksService = async (queryParams, currentUser) => {
+    let {
+        page,
+        limit,
+        sortKey = "createdAt",
+        sortOrder = "desc",
+        search,
+        ...filters
+    } = queryParams;
+
+    const pageNumber = parseInt(page) || 1;
+    const limitNumber = parseInt(limit) || 10;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Base match
+    let matchStage = {};
+
+    // 🟢 Role-based filtering (example logic)
+    if (currentUser?.role === "Admin") {
+        matchStage.reportTo = new mongoose.Types.ObjectId(currentUser._id);
+    }
+
+    // 🟢 Dynamic filters
+    Object.keys(filters).forEach((key) => {
+        if (filters[key] && typeof filters[key] === "string") {
+            const values = filters[key].split(",");
+
+            if (key === "_id" || key === "assignedTo" || key === "reportTo") {
+                matchStage[key] = {
+                    $in: values
+                        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+                        .map((id) => new mongoose.Types.ObjectId(id)),
+                };
+            } else {
+                matchStage[key] = { $in: values };
+            }
+        }
+    });
+
+    // 🟢 Search (on title or description)
+    if (search) {
+        matchStage.$or = [
+            { title: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } },
+        ];
+    }
+
+    // 🟢 Sorting
+    const allowedSortFields = ["createdAt", "title", "status"];
+    const finalSortKey = allowedSortFields.includes(sortKey)
+        ? sortKey
+        : "createdAt";
+
+    const sortStage = {
+        [finalSortKey]: sortOrder === "asc" ? 1 : -1,
+    };
+    console.log(matchStage);
+
+    // 🟢 Aggregation with populate
+    const result = await Task.aggregate([
+        { $match: matchStage },
+
+        {
+            $facet: {
+                tasks: [
+                    { $sort: sortStage },
+                    { $skip: skip },
+                    { $limit: limitNumber },
+
+                    // Populate assignedTo
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "assignedTo",
+                            foreignField: "_id",
+                            as: "assignedTo",
+                        },
+                    },
+                    {
+                        $unwind: {
+                            path: "$assignedTo",
+                            preserveNullAndEmptyArrays: true,
+                        },
+                    },
+
+                    // Populate reportTo
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "reportTo",
+                            foreignField: "_id",
+                            as: "reportTo",
+                        },
+                    },
+                    {
+                        $unwind: {
+                            path: "$reportTo",
+                            preserveNullAndEmptyArrays: true,
+                        },
+                    },
+
+                    {
+                        $project: {
+                            title: 1,
+                            description: 1,
+                            status: 1,
+                            createdAt: 1,
+                            "assignedTo.name": 1,
+                            "assignedTo.email": 1,
+                            "reportTo.name": 1,
+                            "reportTo.email": 1,
+                        },
+                    },
+                ],
+
+                totalCount: [
+                    { $count: "count" }
+                ],
+            },
+        },
+    ]);
+
+    const tasks = result[0]?.tasks || [];
+    const count = result[0]?.totalCount[0]?.count || 0;
+
+    if (count === 0) {
+        throw new ApiError(404, "No task found")
+    }
+
+
+    return {
+        count,
+        page: pageNumber,
+        limit: limitNumber,
+        tasks,
+    };
 };
 
-const getTaskByProjIdService = async (projectId, queryParams) => {
+
+const getTaskByProjIdService = async (projectId, queryParams, currentUser) => {
 
     let {
-        page = 1,
-        limit = 10,
+        page,
+        limit,
         sortKey = "createdAt",
         sortOrder = "desc",
         search,
@@ -93,7 +228,9 @@ const getTaskByProjIdService = async (projectId, queryParams) => {
 
     // Base match
     let matchStage = {
-        projectId: new mongoose.Types.ObjectId(projectId)
+        projectId: new mongoose.Types.ObjectId(projectId),
+        reportTo: new mongoose.Types.ObjectId(currentUser._id)
+
     };
 
     // 🔍 Dynamic filters
@@ -180,9 +317,12 @@ const getTaskByProjIdService = async (projectId, queryParams) => {
             { $count: "count" }
         ])
     ]);
-
+    console.log(tasks);
+    
     const count = totalRecords[0]?.count || 0;
-
+    if (count === 0) {
+        throw new ApiError(404, "No task found")
+    }
     return {
         count,
         page: pageNumber,
@@ -198,14 +338,8 @@ const updateTaskService = async (id, data, user) => {
         throw new ApiError(404, "Task Not found");
     }
 
-    const project = await projectModel.findById(task.projectId);
-
-    if (!project) {
-        throw new ApiError(404, "Project Not found");
-    }
-
     // Ownership check
-    assertOwner(project.company_Id, user.company_Id);
+    assertOwner(task.reportTo, user._id);
 
     const historyLogs = [];
     const trackFields = ["status", "priority", "assignedTo"];
@@ -244,6 +378,8 @@ const updateTaskService = async (id, data, user) => {
 
     return updated;
 };
+
+
 const deleteTaskService = async (id, user) => {
 
     const task = await Task.findById(id);
@@ -252,20 +388,13 @@ const deleteTaskService = async (id, user) => {
         throw new ApiError(404, "Task Not found");
     }
 
-    const project = await projectModel.findById(task.projectId);
-
-    if (!project) {
-        throw new ApiError(404, "Project Not found");
-    }
-
     // Ownership check
-    assertOwner(project.company_Id, user.company_Id);
-
+    assertOwner(task.reportTo, user._id);
     const deleted = await Task.findByIdAndDelete(id);
 
     return deleted;
 };
-
+    
 
 // For User Service 
 /**

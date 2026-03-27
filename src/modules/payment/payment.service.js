@@ -94,7 +94,7 @@ const handleStripeWebhookService = async (body, signature) => {
 
         const session = event.data.object;
 
-        console.log("Session Metadata:", session.metadata);
+        // console.log("Session Metadata:", session.metadata);
 
         const { orderId, userId, planId, planDuration, companyId } = session.metadata;
 
@@ -104,8 +104,8 @@ const handleStripeWebhookService = async (body, signature) => {
 
 
 
-        const planStartDate = new Date();
-        const planExpiryDate = new Date();
+        let planStartDate = new Date();
+        let planExpiryDate = new Date();
 
         const duration = Number(planDuration);
 

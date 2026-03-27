@@ -10,14 +10,13 @@ const createTask = asyncHandler(async (req, res) => {
 
 });
 
-const getAllTasks = async (req, res) => {
-    try {
-        const tasks = await getAllTasks();
-        res.json(tasks);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
+const getAllTasks = asyncHandler(async (req, res) => {
+
+
+    const tasks = await getAllTasksService(req.query, req.user);
+
+    return new ApiResponse(res, 200, tasks, "Succesfully Fetched")
+});
 
 const getTaskByProjId = asyncHandler(async (req, res) => {
     const projectId = req.params.id;
@@ -30,7 +29,7 @@ const getTaskByProjId = asyncHandler(async (req, res) => {
         });
     }
 
-    const result = await getTaskByProjIdService(projectId, queryParams);
+    const result = await getTaskByProjIdService(projectId, queryParams, req.user);
 
     return res.status(200).json({
         success: true,
@@ -46,14 +45,12 @@ const updateTask = asyncHandler(async (req, res) => {
 
 });
 
-const deleteTask = async (req, res) => {
-    try {
-        await deleteTask(req.params.id, req.user);
-        res.json({ message: "Task deleted successfully" });
-    } catch (error) {
-        res.status(404).json({ message: error.message });
-    }
-};
+const deleteTask = asyncHandler(async (req, res) => {
+
+    const task = await deleteTaskService(req.params.id, req.user);
+    return new ApiResponse(res, 200, task, 'Task deleted succesfully')
+
+});
 
 /**
  * GET /tasks/my-tasks

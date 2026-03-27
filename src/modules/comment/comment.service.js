@@ -1,7 +1,7 @@
 const commentModel = require("./comment.model");
 const Task = require("../task/task.model");
 const ApiError = require("../../utils/ApiError");
-const { isOwner } = require("../..//utils/ownership")
+const { isOwner, assertOwner } = require("../..//utils/ownership")
 
 
 const createCommentService = async (taskId, comment, user) => {
@@ -51,4 +51,37 @@ const getCommentsByTaskId = (taskId) => getComments({ taskId });
 const getCommentsByUserId = (userId) => getComments({ userId });
 
 
-module.exports = { createCommentService, getCommentsByTaskId, getCommentsByUserId }
+const updateCommentService = async (id, comment, user) => {
+
+    const data = await commentModel.findById(id);
+
+    if (!data) {
+        throw new Error("Comment not found");
+    }
+
+    assertOwner(data.userId, user._id);
+
+    data.comment = comment;
+
+    await data.save();
+
+    return data;
+};
+
+
+const deleteCommentService = async (id, user) => {
+    const data = await commentModel.findById(id);
+
+    if (!data) {
+        throw new Error("Comment not found");
+    }
+
+    assertOwner(data.userId, user._id);
+
+    await data.deleteOne();
+
+    return "Comment deleted successfully";
+};
+
+
+module.exports = { createCommentService, getCommentsByTaskId, getCommentsByUserId, updateCommentService, deleteCommentService}

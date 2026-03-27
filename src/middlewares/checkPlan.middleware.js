@@ -36,20 +36,7 @@ const getActiveSubscription = async (company_Id) => {
 
 /**
  * checkPlanLimit(resource)
- *
- * A middleware factory. Call it with the resource you want to gate:
- *   - "projects"  → checks max_projects against current project count
- *   - "users"     → checks max_users against current user count in company
- *
- * Usage in routes:
- *   router.post("/", checkPlanLimit("projects"), createProject);
- *   router.post("/invite", checkPlanLimit("users"), inviteUser);
- *
- * How limits are resolved (in order of priority):
- *   1. limits_snapshot on the Subscription document  (set at purchase time)
- *   2. limits on the Plan document                   (live fallback)
- *   This ensures mid-cycle plan edits don't surprise active subscribers.
- */
+**/
 const checkPlanLimit = (resource) => {
     return asyncHandler(async (req, res, next) => {
         const company_Id = req.user?.company_Id;

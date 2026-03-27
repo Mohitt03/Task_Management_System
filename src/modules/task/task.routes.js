@@ -5,10 +5,19 @@ const { createTask, getAllTasks, getTaskByProjId, updateTask, deleteTask, getUse
 const rbacMiddleware = require("../../middlewares/rbac.middleware")
 
 //Admin Routes
+// Create Task
 router.post("/:projId", rbacMiddleware(["Admin"]), createTask);
+
+//Get All Task
 router.get("/", rbacMiddleware(["Admin"]), getAllTasks);
+
+//Get Task by Project Id
 router.get("/:id", rbacMiddleware(["Admin"]), getTaskByProjId);
+
+// Updating Task
 router.put("/:id", rbacMiddleware(["Admin"]), updateTask);
+
+//Deleting Task
 router.delete("/:id", rbacMiddleware(["Admin"]), deleteTask);
 
 //User Routes

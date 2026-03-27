@@ -1,10 +1,22 @@
+const { required } = require("joi");
 const mongoose = require("mongoose");
 
 const fileSchema = new mongoose.Schema(
     {
         task_id: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "Task"
+            ref: "Task",
+            required: true
+        },
+        uploaded_by: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true
+        },
+        companyId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Project",
+            required: true
         },
         url: {
             type: String,
@@ -22,10 +34,6 @@ const fileSchema = new mongoose.Schema(
         },
         size: {
             type: Number
-        },
-        uploaded_by: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
         }
     },
     { timestamps: true }

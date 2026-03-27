@@ -56,6 +56,7 @@ const taskRoute = require("./modules/task/task.routes")
 const historyRoutes = require("./modules/history/history.routes");
 const commentRoutes = require("./modules/comment/comment.routes")
 const fileRoutes = require("./modules/file/file.route");
+const dashBoardRoutes = require("./modules/dashboard/dashboard.routes");
 const jwtVerify = require("./middlewares/auth.middleware")
 const paymentStatus = require("./middlewares/paymentStatus.middleware")
 
@@ -69,6 +70,7 @@ app.use('/api/task', jwtVerify, paymentStatus(), taskRoute)
 app.use('/api/history', jwtVerify, paymentStatus(), historyRoutes)
 app.use('/api/comment', jwtVerify, paymentStatus(), commentRoutes)
 app.use('/api/file', jwtVerify, paymentStatus(), fileRoutes)
+app.use('/api/dashBoard', dashBoardRoutes)
 
 //Error Handler
 app.use(errorHandler);
