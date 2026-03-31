@@ -22,7 +22,6 @@ const registerUserService = async ({ email, name, password, role, companyData, k
     if (existedUser) {
         throw new ApiError(409, "User with email or name already exists");
     }
-    console.log(companyData);
 
     let user;
     let status = "inactive"
@@ -30,6 +29,9 @@ const registerUserService = async ({ email, name, password, role, companyData, k
     // Creating S_Admin Only 2 Allowed
     if (role === "S_Admin") {
         status = "active"
+
+        if (!key) throw new ApiError(400, "When Creating Super Admin Please Provide Key")
+
         console.log(key.toString(), process.env.SUPER_ADMIN_KEY);
 
         if (key.toString() !== process.env.SUPER_ADMIN_KEY) throw new ApiError(400, "Wrong Super Admin Key")
@@ -58,6 +60,11 @@ const registerUserService = async ({ email, name, password, role, companyData, k
         return data = createdUser, message;
     }
 
+    if (!companyData) throw new ApiError(400, "While Creating Admin Please Provide Company Data");
+
+    const data = await Company.find({ name: companyData.name })
+
+    if (data.length > 0) throw new ApiError(400, `Company with this ${companyData.name} name already exists`);
     //creating company
     const company = await Company.create(companyData)
 
@@ -79,8 +86,20 @@ const registerUserService = async ({ email, name, password, role, companyData, k
     if (!createdUser) {
         throw new ApiError(500, "Something went wrong while registering the user");
     }
+
+
+
+    await sendEmail({
+        to: email,
+        subject: "You Account is created",
+        html: `<h1>Thankyou for joining Us ${name}.</h1>`,
+    });
+
+
+
+
     let message = "Purchase the Plan To use the softeware"
-    return data = createdUser, company, message;
+    return result = createdUser, company, message;
 };
 
 

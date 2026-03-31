@@ -70,7 +70,7 @@ app.use('/api/task', jwtVerify, paymentStatus(), taskRoute)
 app.use('/api/history', jwtVerify, paymentStatus(), historyRoutes)
 app.use('/api/comment', jwtVerify, paymentStatus(), commentRoutes)
 app.use('/api/file', jwtVerify, paymentStatus(), fileRoutes)
-app.use('/api/dashBoard', dashBoardRoutes)
+app.use('/api/dashBoard', jwtVerify, dashBoardRoutes)
 
 //Error Handler
 app.use(errorHandler);

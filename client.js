@@ -5,7 +5,7 @@ const socket = io("http://localhost:3000");
 socket.on("connect", () => {
   console.log("✅ Connected to server:", socket.id);
 
-  socket.emit("register", "123");
+  socket.emit("register", "123");;
 });
 
 socket.on("customMessage", (data) => {
@@ -13,4 +13,4 @@ socket.on("customMessage", (data) => {
 });
 
 // 👇 ADD THIS (keep process alive)
-process.stdin.resume();
+process.stdin.resume(); 

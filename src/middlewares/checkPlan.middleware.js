@@ -15,10 +15,10 @@ const getActiveSubscription = async (company_Id) => {
 
     const company = await Company.findById(company_Id)
     const planId = company.planId;
-    console.log(planId);
+    // console.log(planId);
 
     const subscription = await Subscription.findById(planId);
-    console.log("subscription:- ", subscription);
+    // console.log("subscription:- ", subscription);
 
     if (!subscription) {
         throw new ApiError(403, "No active subscription found. Please subscribe to a plan to continue.");
@@ -40,7 +40,6 @@ const getActiveSubscription = async (company_Id) => {
 const checkPlanLimit = (resource) => {
     return asyncHandler(async (req, res, next) => {
         const company_Id = req.user?.company_Id;
-        console.log("CheckPlan", req.user);
 
         if (!company_Id) {
             throw new ApiError(400, "Company context is missing from the request");
@@ -52,7 +51,7 @@ const checkPlanLimit = (resource) => {
         // ── 2. Resolve the applicable limit ───────────────────────────────────
         // Prefer the snapshot taken at purchase time; fall back to live plan values
         const snapshot = subscription.limits || {};
-        console.log(snapshot);
+        // console.log(snapshot);
 
         let limit;
         let currentCount;
@@ -73,7 +72,7 @@ const checkPlanLimit = (resource) => {
                 if (limit === -1 || limit === Infinity) return next();
 
                 currentCount = await Project.countDocuments({ company_Id });
-                console.log(currentCount);
+                // console.log(currentCount);
 
                 if (currentCount >= limit) {
                     throw new ApiError(403,
@@ -89,7 +88,7 @@ const checkPlanLimit = (resource) => {
             case "users": {
                 limit = snapshot.maxUsers;
                 resourceLabel = "users";
-                console.log("maxUsers", snapshot.maxUsers, company_Id);
+                // console.log("maxUsers", snapshot.maxUsers, company_Id);
 
 
                 if (limit === null || limit === undefined) {
@@ -103,7 +102,7 @@ const checkPlanLimit = (resource) => {
                     createdBy: req.user.id,
                     isActive: "true",
                 });
-                console.log("Check Plan", currentCount);
+                // console.log("Check Plan", currentCount);
 
 
                 if (currentCount >= limit) {

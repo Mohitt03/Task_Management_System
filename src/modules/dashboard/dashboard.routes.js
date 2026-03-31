@@ -7,8 +7,8 @@ const rbacMiddleware = require("../../middlewares/rbac.middleware");
 const { companyValidation } = require('../../validations/companyValidation.js');
 const { getS_AdminDashboard, getAdminDashboard, getUserDashboard } = require('./dashboard.controller');
 
-router.get('/s-admin', getS_AdminDashboard);
-router.get('/admin', getAdminDashboard);
-router.get('/user', getUserDashboard);
+router.get('/s-admin', rbacMiddleware(["S_Admin"]), getS_AdminDashboard);
+router.get('/admin', rbacMiddleware(["Admin"]), getAdminDashboard);
+router.get('/user', rbacMiddleware(["User"]), getUserDashboard);
 
 module.exports = router;

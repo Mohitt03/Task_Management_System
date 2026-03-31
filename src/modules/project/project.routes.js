@@ -14,7 +14,7 @@ const { checkPlanLimit } = require("../../middlewares/checkPlan.middleware.js");
 const { projectValidation } = require("../../validations/projectValidation.js");
 
 // All project routes require authentication and only admin can manage the project
-router.use( rbacMiddleware(["Admin", "User"]));
+router.use(rbacMiddleware(["Admin", "User"]));
 
 // ─── Core CRUD ────────────────────────────────────────────────────────────────
 // POST   /api/projects          → Create a new project
@@ -37,10 +37,10 @@ router.route("/:projectId")
 // POST   /api/projects/:id/members              → Add a member
 // DELETE /api/projects/:id/members/:memberId    → Remove a member
 
-router.route("/:projectId/members")
+router.route("/add/:projectId/:members")
     .post(rbacMiddleware(["Admin"]), addMember);
 
-router.route("/:projectId/members/:memberId")
-    .delete(removeMember);
+router.route("/remove/:projectId/:members")
+    .delete(rbacMiddleware(["Admin"]), removeMember);
 
 module.exports = router;

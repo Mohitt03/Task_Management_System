@@ -77,8 +77,8 @@ const deleteProject = asyncHandler(async (req, res) => {
 // ─── Add Member ───────────────────────────────────────────────────────────────
 
 const addMember = asyncHandler(async (req, res) => {
-    const { projectId } = req.params;
-    const { user_Id, role } = req.body;
+    const projectId = req.params.projectId;
+    const user_Id = req.params.members;
 
     if (!user_Id) {
         throw new ApiError(400, "user_Id is required");
@@ -94,9 +94,10 @@ const addMember = asyncHandler(async (req, res) => {
 // ─── Remove Member ────────────────────────────────────────────────────────────
 
 const removeMember = asyncHandler(async (req, res) => {
-    const { projectId, memberId } = req.params;
+    const projectId = req.params.projectId;
+    const user_Id = req.params.members;
 
-    const project = await projectService.removeMember(projectId, memberId, req.user);
+    const project = await projectService.removeMember(projectId, user_Id, req.user);
 
     return res
         .status(200)

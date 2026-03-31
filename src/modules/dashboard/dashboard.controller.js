@@ -9,12 +9,12 @@ const getS_AdminDashboard = asyncHandler(async (req, res) => {
 });
 
 const getAdminDashboard = asyncHandler(async (req, res) => {
-    const result = await getAdminDashboardService();
+    const result = await getAdminDashboardService(req.user);
     res.json({ message: result });
 });
 
 const getUserDashboard = asyncHandler(async (req, res) => {
-    const result = await getUserDashboardService();
+    const result = await getUserDashboardService(req.user);
     res.json({ message: result });
 });
 

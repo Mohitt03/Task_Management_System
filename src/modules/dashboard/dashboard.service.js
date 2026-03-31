@@ -4,124 +4,7 @@ const Project = require("../../modules/project/project.models")
 const ApiError = require("../../utils/ApiError");
 const mongoose = require('mongoose')
 
-// const getCompanyService = async (queryParams, currentUser) => {
 
-//     let {
-//         page = 1,
-//         limit = 10,
-//         sortKey = "createdAt",
-//         sortOrder = "desc",
-//         search,
-//         ...filters
-//     } = queryParams;
-
-//     const pageNumber = parseInt(page) || 1;
-//     const limitNumber = parseInt(limit) || 10;
-//     const skip = (pageNumber - 1) * limitNumber;
-
-//     let matchStage = {
-//         isActive: true,
-//         isDelete: false
-//     };
-
-//     // 🟢 Role-based filtering
-//     if (currentUser?.role === "Admin") {
-//         matchStage._id = new mongoose.Types.ObjectId(currentUser.company_Id);
-//     }
-
-//     // Dynamic filters
-//     Object.keys(filters).forEach(key => {
-//         if (filters[key]) {
-//             const values = filters[key].split(",");
-
-//             if (key === "_id") {
-//                 matchStage[key] = {
-//                     $in: values.map(id => new mongoose.Types.ObjectId(id))
-//                 };
-//             } else {
-//                 matchStage[key] = { $in: values };
-//             }
-//         }
-//     });
-
-//     // Search
-//     if (search) {
-//         matchStage.name = { $regex: search, $options: "i" };
-//     }
-
-//     const sortStage = {
-//         [sortKey]: sortOrder === "asc" ? 1 : -1
-//     };
-
-//     const [company, totalRecords] = await Promise.all([
-//         Company.aggregate([
-//             { $match: matchStage },
-//             { $project: { isActive: 0, isDelete: 0 } },
-//             { $sort: sortStage },
-//             { $skip: skip },
-//             { $limit: limitNumber }
-//         ]),
-//         Company.aggregate([
-//             { $match: matchStage },
-//             { $count: "count" }
-//         ])
-//     ]);
-
-//     const count = totalRecords[0]?.count || 0;
-
-//     return {
-//         count,
-//         page: pageNumber,
-//         limit: limitNumber,
-//         company
-//     };
-// };
-
-
-
-// const createCompanyService = async ({ name, company_Id, userId }) => {
-
-//     if (!name || !name.trim()) {
-//         throw new ApiError(400, "Company name is required");
-//     }
-
-//     // Optional: check if company already exists
-//     const existingCompany = await Company.findOne({ name });
-
-//     if (existingCompany) {
-//         throw new ApiError(409, "Company already exists");
-//     }
-
-//     const company = await Company.create({
-//         name,
-//         company_Id,
-//         S_Admin_Id: userId,
-//     });
-
-//     return company;
-// };
-
-
-// const updateCompanyService = async (user, data) => {
-
-//     const response = await Company.findByIdAndUpdate(user.company_Id, data, { new: true })
-
-//     return response;
-
-// }
-
-// const deleteCompanyService = async (user) => {
-
-//     // Soft Deleting
-//     await Company.findByIdAndUpdate(user.company_Id, {
-//         isDelete: true,
-//         isActive: false
-//     });
-
-//     let company = "Company is deleted"
-//     return company
-// }
-//
 
 
 // S_Admin Dashboard Service
@@ -232,10 +115,10 @@ const File = require("../../modules/file/file.model");
 const Comment = require("../../modules/comment/comment.model");
 const TaskHistory = require("../../modules/history/history.model");
 
-const getAdminDashboardService = async (adminId) => {
+const getAdminDashboardService = async (admin) => {
 
-    const adminObjectId = new mongoose.Types.ObjectId("69b3e106951ad393cdea299a");
-    const admin = await User.findById("69b3e106951ad393cdea299a")
+    const adminObjectId = new mongoose.Types.ObjectId(admin._id);
+    // const admin = await User.findById("69b3e106951ad393cdea299a")
     console.log("dash", admin);
 
     const [
@@ -288,15 +171,22 @@ const getAdminDashboardService = async (adminId) => {
 };
 
 // User Dashboard Service
-const getUserDashboardService = async () => {
-    let userId = "69b9024f05286a02d6a74ca9"
+const getUserDashboardService = async (user) => {
+    let userId = user._id
     // Run queries in parallel for performance
-    const [projects, tasks, history, comments] = await Promise.all([
-        Project.find({ assignedUsers: userId })
-            .select("name description status startDate endDate"),
 
-        Task.find({ assignedTo: userId })
-            .select("title status priority dueDate projectId"),
+    console.log(userId);
+
+    let task = await Task.find({ assignedTo: userId }).select("title status priority dueDate projectId")
+    console.log(task);
+
+
+    const [projects, history, comments] = await Promise.all([
+
+
+
+        Project.find({ assignedUsers: Task.projectId })
+            .select("name description status startDate endDate"),
 
         TaskHistory.find({ userId })
             .sort({ createdAt: -1 })
@@ -307,6 +197,10 @@ const getUserDashboardService = async () => {
             .limit(10)
             .populate("taskId", "title")
     ]);
+
+    console.log(tasks);
+
+
 
     // Optional: Group tasks by status
     const groupedTasks = {

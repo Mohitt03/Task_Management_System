@@ -13,7 +13,7 @@ const sendEmail = async ({ to, subject, html }) => {
 
 
     await transporter.sendMail({
-        from: `"StoreFront Inventory" <${process.env.EMAIL}>`,
+        from: `"Task Management System" <${process.env.EMAIL}>`,
         to,
         subject,
         html

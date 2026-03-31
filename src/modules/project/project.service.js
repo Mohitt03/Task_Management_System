@@ -256,6 +256,7 @@ const addMember = async (projectId, { user_Id, }, user) => {
 
     assertOwner(AsignUser.createdBy, user._id, message = "Admin cannot assign another User")
 
+    console.log("Project Service", AsignUser);
 
 
     const alreadyMember = project.members.some((m) => m.user_Id.toString() === user_Id.toString());
@@ -284,6 +285,9 @@ const removeMember = async (projectId, memberId, user) => {
         throw new ApiError(404, "Project not found");
     }
 
+    if (!AsignUser) {
+        throw new ApiError(404, "Asigned user not found");
+    }
 
     assertOwner(project.company_Id, user.company_Id, message = "Admin is not owner of the project")
 
